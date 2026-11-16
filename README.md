@@ -1,5 +1,7 @@
 # Tokonoma — a shoji-style skin for Video.js v10
 
+Live demo: https://tokonoma-site.vercel.app · Source: https://github.com/JoshuaRobertsDesign/Tokonoma
+
 The video hangs on the back wall of a recessed alcove (tokonoma). When the controls are needed,
 the view tilts: the wall lifts behind the lintel and the floor hinges up from the sill. A washi
 door slides across the floor as the video plays, and its wooden pull (hikite) is the seek handle.
