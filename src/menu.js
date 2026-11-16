@@ -4,6 +4,7 @@
 // open as an inner door. Plain DOM; it talks to the <video> directly.
 
 import { askTilt } from './depth.js';
+import { saveStill } from './still.js';
 
 const RATE_LABEL = (r) => (r === 1 ? 'Normal' : `${r}×`);
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -464,6 +465,7 @@ export function initSettings(container, video, { onToggle, host = video } = {}) 
       syncToggles();
     },
     'picture-reset': () => glidePicture({ ...PICTURE_DEFAULT }),
+    still: () => saveStill(container, video, host),
     close: () => close({ returnFocus: true }),
     // the magnifier works on the picture, so the door gets out of its way
     magnifier: () => {

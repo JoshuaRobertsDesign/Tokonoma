@@ -52,13 +52,14 @@ time, so the two never drift apart.
 | `src/element.js`, `src/lib.js` | `<tokonoma-player>`, and the entry for the embeddable build (`vite.lib.config.js`) |
 | `src/captions.js` | Captions set on washi strips that rise with the floor (the browser's own rendering is hidden) |
 | `src/fonts.css` | JetBrains Mono, Latin and Latin Extended only |
-| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier) and the washi readout for volume, speed and chapter |
+| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier, `,` / `.` one frame back / forward) and the washi readout for volume, speed, seeking (keys and double-tap), frames and chapters |
+| `src/still.js` | Save still: downloads the frame on screen as a PNG, with the Picture settings applied (settings door → Picture) |
 | `src/light.js` | Light through paper: tints the washi with the picture's colour |
 | `src/seal.js` | The hanko seal pressed onto the door when the video ends |
 | `src/depth.js` | Parallax depth from the pointer or the phone's tilt |
 | `src/magnifier.js` | The magnifier lens |
 | `src/sound.js` | Optional interface sounds, synthesised with Web Audio |
-| `src/prefs.js` | Remembers speed, volume, colour scheme and sound between visits |
+| `src/prefs.js` | Remembers speed, volume, colour scheme and sound between visits, and resumes each video where it was left (by address) |
 | `public/media/` | Local copy of the video, poster, chapters and thumbnail storyboard |
 | `scripts/capture-states.cjs` | Playwright script that renders every state as a still |
 | `scripts/make-storyboard.sh` | Makes the seek-preview storyboard (sprite + VTT) for a video file |

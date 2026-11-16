@@ -360,7 +360,13 @@ video-player {
 .tk-osd[data-icon='vol-low'] [data-for='vol-low'],
 .tk-osd[data-icon='vol-off'] [data-for='vol-off'],
 .tk-osd[data-icon='speed'] [data-for='speed'],
-.tk-osd[data-icon='chapter'] [data-for='chapter'] { display: block; }
+.tk-osd[data-icon='chapter'] [data-for='chapter'],
+.tk-osd[data-icon='back'] [data-for='back'],
+.tk-osd[data-icon='forward'] [data-for='forward'],
+.tk-osd[data-icon='frame'] [data-for='frame'],
+.tk-osd[data-icon='still'] [data-for='still'],
+.tk-osd[data-icon='resume'] [data-for='resume'] { display: block; }
+.tk-osd-ic-line { fill: none; stroke: var(--tk-walnut); stroke-width: 14; stroke-linejoin: round; stroke-linecap: round; }
 .tk-osd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .tk-osd-label {
   color: var(--tk-ink-soft);
