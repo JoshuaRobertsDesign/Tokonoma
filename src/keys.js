@@ -4,6 +4,7 @@
 //   Z       magnifier on / off
 //   , / .   one frame back / forward (pausing first)
 //   Shift+S save the frame on screen as a still
+//   I / O   clip start / end (with data-clip="on")
 // and a washi readout that wipes in over the picture when volume, mute, speed or
 // chapter change from the keyboard. Video.js handles the volume and speed keys
 // itself; this only watches for them so it can show the result.
@@ -221,6 +222,9 @@ export function initKeys(container, video, { settings } = {}) {
       e.preventDefault();
       container.toggleAttribute('data-magnifier');
       if (container.hasAttribute('data-magnifier')) settings?.close({ returnFocus: true });
+    } else if ((k === 'i' || k === 'o') && !e.shiftKey && container.tkClip?.enabled()) {
+      e.preventDefault();
+      container.tkClip.mark(k === 'i' ? 'in' : 'out');
     } else if (k === 's' && e.shiftKey && !e.repeat) {
       e.preventDefault();
       saveStill(container, video, container.querySelector('.tk-video') || video);

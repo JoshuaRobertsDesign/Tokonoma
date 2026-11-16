@@ -52,7 +52,8 @@ time, so the two never drift apart.
 | `src/element.js`, `src/lib.js` | `<tokonoma-player>`, and the entry for the embeddable build (`vite.lib.config.js`) |
 | `src/captions.js` | Captions set on washi strips that rise with the floor (the browser's own rendering is hidden) |
 | `src/fonts.css` | JetBrains Mono, Latin and Latin Extended only |
-| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier, `,` / `.` one frame back / forward, Shift+S save a still) and the washi readout for volume, speed, seeking (keys and double-tap), frames and chapters |
+| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier, `,` / `.` one frame back / forward, Shift+S save a still, I / O clip start / end) and the washi readout for volume, speed, seeking (keys and double-tap), frames and chapters |
+| `src/clip.js` | Save clip: start/end marks (keys, menu, draggable pegs), recording with MediaRecorder, the clip card on the picture |
 | `src/still.js` | Save still: downloads the frame on screen as a PNG, with the Picture settings applied (settings door → Picture) |
 | `src/light.js` | Light through paper: tints the washi with the picture's colour |
 | `src/seal.js` | The hanko seal pressed onto the door when the video ends |
@@ -88,6 +89,7 @@ Set on `.tk` (or any parent):
 | `data-seal-align` | `left` | `left` beside replay, `center` in the middle of the door, `right` beside the time |
 | `--tk-seal-ink` | scheme accent | The seal's ink colour for text seals |
 | `data-magnifier-shape` | `circle` | `square` for a square lens |
+| `data-clip` | `off` | `on` lets viewers save a clip: mark a start and an end (I / O as it plays, Settings → Clip, or drag the two pegs that appear in the groove), then Save clip. It's recorded as it plays (so it takes as long as the clip, up to 5 minutes) and downloads as H.264 MP4 where the browser records it, otherwise WebM. Chrome and Edge record the video's own stream; Safari and Firefox go through a canvas and Web Audio. Needs a CORS-clean video (Mux and same-site files are). Off by default: it lets anyone download the video |
 | `data-still-button` | `off` | `on` puts a camera on the picture (above the floor, while it's up) that saves the frame on screen; it opens to "Save still" on hover or focus. On phones it, and Save still in the settings door, appear only in fullscreen. Shift+S works everywhere |
 | `data-aspect` | `auto` | The frame's shape: `auto` takes the video's own (16:9 until it's known), or any `w:h` (`4:3`, `21:9`, `1:1`, `9:16`…). The whole picture shows (letterboxed where shapes differ), and a tall frame narrows the player rather than running past the screen's height |
 | `--tk-lattice-angle` | `20deg` | How far the light rakes the settings door's lattice shadow |
@@ -202,7 +204,7 @@ the ids inside each settings door are made unique automatically.
 - **Captions**: the demo's track (`media/captions-en.vtt`) is SDH for a film with no dialogue:
   the music, its credit, where it rises and where it fades. `C` toggles captions.
 - **Checked**: axe-core (WCAG 2.1 AA) reports no issues, and Lighthouse gives accessibility 100
-  on desktop and mobile. The skin's own CSS and JS come to about 27 KB gzipped.
+  on desktop and mobile. The skin's own CSS and JS come to about 30 KB gzipped.
 
 ## License
 

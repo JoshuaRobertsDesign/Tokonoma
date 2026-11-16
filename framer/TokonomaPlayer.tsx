@@ -90,6 +90,7 @@ interface Props {
         sound: boolean
         magnifierShape: string
         stillButton: boolean
+        clip: boolean
         seal: string
         sealImage?: Img
         sealAlign: string
@@ -153,6 +154,7 @@ export default function TokonomaPlayer(props: Props) {
             sound: extras.sound ? "on" : "off",
             "magnifier-shape": extras.magnifierShape,
             "still-button": extras.stillButton ? "on" : "off",
+            clip: extras.clip ? "on" : "off",
             "seal-align": extras.sealAlign,
             volume: String(extras.volume),
             remember: extras.remember ? "on" : "off",
@@ -285,6 +287,7 @@ const DEFAULTS = {
         sound: false,
         magnifierShape: "circle",
         stillButton: false,
+        clip: false,
         seal: "",
         sealAlign: "left",
         volume: 0.8,
@@ -435,6 +438,12 @@ addPropertyControls(TokonomaPlayer, {
                 title: "Still Button",
                 defaultValue: false,
                 description: "A camera on the picture that saves the frame (phones: fullscreen only). Shift+S works either way.",
+            },
+            clip: {
+                type: ControlType.Boolean,
+                title: "Save Clip",
+                defaultValue: false,
+                description: "Viewers mark a start and end (I / O, the pegs, or Settings → Clip) and download it. Off lets no one download the video.",
             },
             seal: { type: ControlType.String, title: "Seal Text", placeholder: "Title initials" },
             sealImage: { type: ControlType.ResponsiveImage, title: "Seal Image" },

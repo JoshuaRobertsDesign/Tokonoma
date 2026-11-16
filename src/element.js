@@ -9,7 +9,7 @@
 // captions-label, captions-lang, fallback, fallback-thumbnails, preload, loading
 // (lazy: build only as it nears the screen), and the
 // skin's settings by short name — theme, post, title-align, title-layer, seek,
-// floor, chapters-style, shade, paper-light, depth, sound, magnifier-shape, aspect, still-button, seal,
+// floor, chapters-style, shade, paper-light, depth, sound, magnifier-shape, aspect, still-button, clip, seal,
 // seal-src, seal-align, volume, remember — and colours: wood, floor, paper, ink,
 // ink-soft, wall, accent, accent-deep. Any data-* attribute is passed straight
 // to the player too. The markup is built once, when the element first connects.
@@ -33,6 +33,7 @@ const SETTINGS = {
   'magnifier-shape': 'data-magnifier-shape',
   aspect: 'data-aspect',
   'still-button': 'data-still-button',
+  clip: 'data-clip',
   seal: 'data-seal',
   'seal-src': 'data-seal-src',
   'seal-align': 'data-seal-align',

@@ -5,7 +5,7 @@
 // allow it (no CORS) can't be read, and says so instead.
 
 const pad2 = (n) => String(n).padStart(2, '0');
-const slug = (s) => (s || 'still').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').slice(0, 48) || 'still';
+export const slug = (s) => (s || 'still').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').slice(0, 48) || 'still';
 
 // the camera on the picture, when data-still-button="on"
 export function initStillButton(container, video, host = video) {
@@ -29,17 +29,22 @@ export function saveStill(container, video, host = video) {
   try {
     canvas.toBlob((blob) => {
       if (!blob) { note('Save still', "Couldn't save"); return; }
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = name;
-      document.body.append(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      download(blob, name);
       note('Still saved', 'Downloaded as PNG');
     }, 'image/png');
   } catch {
     // a canvas holding another site's picture can't be read back
     note('Save still', 'Not allowed for this video');
   }
+}
+
+// hand a file to the browser's downloads
+export function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 }

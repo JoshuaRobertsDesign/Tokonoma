@@ -1,6 +1,8 @@
 // Demo page only: lets a viewer try the skin's layout options.
 import { askTilt } from './depth.js';
 const player = document.querySelector('.tk');
+// the demo shows clip saving (a player has it off unless asked for)
+player?.setAttribute('data-clip', 'on');
 
 // A few settings aren't plain attribute values: the magnifier is a present/absent
 // attribute, and the seal's mark is set through data-seal / data-seal-src.

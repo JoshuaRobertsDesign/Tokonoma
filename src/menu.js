@@ -466,6 +466,10 @@ export function initSettings(container, video, { onToggle, host = video } = {}) 
     },
     'picture-reset': () => glidePicture({ ...PICTURE_DEFAULT }),
     still: () => saveStill(container, video, host),
+    'clip-in': () => container.tkClip?.mark('in'),
+    'clip-out': () => container.tkClip?.mark('out'),
+    'clip-save': () => container.tkClip?.save(),
+    'clip-clear': () => container.tkClip?.clear(),
     close: () => close({ returnFocus: true }),
     // the magnifier works on the picture, so the door gets out of its way
     magnifier: () => {
