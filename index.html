@@ -54,7 +54,7 @@
       <!-- tokonoma:demo-player (filled from src/skin.html at build time; see vite.config.js) -->
 
       <div class="demo-bar" id="settings">
-        <p class="demo-hint">Hover or tap the picture to shift your point of view. Drag the door pull to seek. Press Z for the magnifier. Every setting below changes the player live.</p>
+        <p class="demo-hint">Hover or tap the picture to shift your point of view. Drag the door pull to seek, or double-tap either side to skip. Press Z for the magnifier. Every setting below changes the player live.</p>
         <div class="board" role="group" aria-label="Player settings">
           <div class="board-cell board-colours">
             <h2 class="board-title">Colour</h2>
@@ -246,25 +246,25 @@
           <div class="story-body">
             <ul class="feature-grid">
               <li><h3>A change of perspective</h3><p>Hover, tap or focus the player and your point of view lowers: the picture rises behind the lintel and the floor of the room comes into view. Look away and the view settles back on the picture, leaving a thin strip of progress.</p></li>
-              <li><h3>A door for a seek bar</h3><p>The washi door slides with playback. Drag its pull, click anywhere along the groove to glide there, or use the keyboard.</p></li>
+              <li><h3>A door for a seek bar</h3><p>The washi door slides with playback. Drag its pull, click anywhere along the groove to glide there, double-tap either side of the picture to skip ten seconds, or step frame by frame with , and . on the keyboard.</p></li>
               <li><h3>Chapters and previews</h3><p>Chapter joints in the groove, and a preview card that wipes in with the chapter title, the time and a thumbnail.</p></li>
               <li><h3>A volume door</h3><p>On the post, the volume icon is wiped away as a small vertical door rises, with its own pull and level.</p></li>
-              <li><h3>The settings door</h3><p>A second washi door slides out from behind the post: speed, captions, chapters with loop-a-chapter, light presets and picture adjustments, picture-in-picture, loop, a magnifier, sounds and shortcuts.</p></li>
+              <li><h3>The settings door</h3><p>A second washi door slides out from behind the post: speed, captions, chapters with loop-a-chapter, light presets and picture adjustments, saving the frame on screen as a still, picture-in-picture, loop, a magnifier, depth and sounds.</p></li>
               <li><h3>Light through paper</h3><p>The washi takes on a faint tint of whatever the scene is showing, the way paper glows with the light behind it. As the settings door opens, its kumiko lattice casts a shadow across the picture.</p></li>
-              <li><h3>Depth you can feel</h3><p>The picture, and the shade falling on it, drift a few pixels against the frame as you move the pointer or tilt your phone, so the alcove reads as a real recess.</p></li>
+              <li><h3>Depth you can feel</h3><p>The picture, and the shade falling on it, drift a few pixels against the frame as you move the pointer or tilt your phone, so the alcove reads as a real recess. On iPhone it waits until you switch it on, so no permission prompt greets you.</p></li>
               <li><h3>A seal on the ending</h3><p>When the film ends, a hanko seal is pressed onto the shut door: the title's initials, your own text, or any SVG or PNG, at the left, centre or right.</p></li>
               <li><h3>A closer look</h3><p>A round or square lens follows the pointer, or your finger, and shows the live picture enlarged; scroll over it to zoom from 1.5× to 5×.</p></li>
               <li><h3>Quiet sounds, if wanted</h3><p>Off by default. A wooden knock on the door pulls, a paper glide along the groove, the door drawn along its runner, a soft tap in the menu. All are made in the browser; no audio files.</p></li>
               <li><h3>Light, not overlays</h3><p>Pausing lowers the room's light from the post's side. Loading runs a soft glide along the groove; errors appear on a washi card with one clear way to retry.</p></li>
-              <li><h3>Made to fit</h3><p>Four colour schemes (hinoki, black lacquer, indigo and sakura) that fade into one another. Post on the right, left or hidden; title left, centred, right or hidden; a floor that tilts, slides or unmasks; any frame width, shade and lattice; and a clear seek bar that lays a frosted floor over the picture.</p></li>
-              <li><h3>Accessible</h3><p>Every control works from the keyboard in a sensible order, with standard hotkeys plus keys for chapters, settings and the magnifier. Volume, speed and chapter changes appear on a washi slip, and are announced to screen readers. Focus is always visible, and motion turns into calm cross-fades when reduced motion is on.</p></li>
-              <li><h3>It remembers</h3><p>Speed, volume, colour scheme, sound and picture settings are kept for your next visit.</p></li>
-              <li><h3>Any source</h3><p>Streams from Mux here, and works the same with a plain video file, HLS or DASH from any host, or YouTube and Vimeo embeds.</p></li>
+              <li><h3>Made to fit</h3><p>Four colour schemes (hinoki, black lacquer, indigo and sakura) that fade into one another. A frame that takes the video's own shape, from 21:9 to 9:16, or any shape you set; a post on the right or left, tucked away while you watch, or hidden; title left, centred, right or hidden; a floor that tilts, slides or unmasks; any frame width, shade and lattice; and a clear seek bar that lays a frosted floor over the picture.</p></li>
+              <li><h3>Accessible</h3><p>Every control works from the keyboard in a sensible order, with standard hotkeys plus keys for chapters, single frames, settings and the magnifier. Volume, speed, seeking, frame steps and chapter changes appear on a washi slip, and are announced to screen readers. Focus is always visible, and motion turns into calm cross-fades when reduced motion is on.</p></li>
+              <li><h3>It remembers</h3><p>Speed, volume, colour scheme, sound and picture settings are kept for your next visit, and each video picks up where you left off.</p></li>
+              <li><h3>Any source</h3><p>Streams from Mux here, and works the same with a plain MP4 or WebM file or an HLS stream from any host. Built from source with Video.js's own media elements, it plays DASH and YouTube or Vimeo embeds too, with fewer effects, since an embed's picture can't be read.</p></li>
             </ul>
             <ul class="stats" aria-label="Measured on the production build">
               <li><strong>100</strong><span>Lighthouse accessibility, on desktop and mobile</span></li>
               <li><strong>0</strong><span>axe-core issues against WCAG 2.1 AA, with the settings door open and shut</span></li>
-              <li><strong>24 KB</strong><span>the skin's own CSS and JavaScript, gzipped, on top of Video.js; no image files in the interface</span></li>
+              <li><strong>27 KB</strong><span>the skin's own CSS and JavaScript, gzipped, on top of Video.js; no image files in the interface</span></li>
               <li><strong>97</strong><span>Lighthouse performance on desktop; SEO 100</span></li>
             </ul>
           </div>
@@ -315,7 +315,7 @@
   theme=&quot;hinoki&quot;&gt;
 &lt;/tokonoma-player&gt;</code></pre>
             </div>
-            <p>Every setting on this page is an attribute: <code>theme</code>, <code>post</code>, <code>title-align</code>, <code>title-layer</code>, <code>seek</code>, <code>floor</code>, <code>chapters-style</code>, <code>shade</code>, <code>paper-light</code>, <code>depth</code>, <code>sound</code>, <code>magnifier-shape</code>, <code>seal</code>, <code>seal-src</code>, <code>seal-align</code> and <code>volume</code>. The lattice, frame, post size and shade strength are CSS custom properties.</p>
+            <p>Every setting on this page is an attribute: <code>theme</code>, <code>post</code>, <code>aspect</code>, <code>title-align</code>, <code>title-layer</code>, <code>seek</code>, <code>floor</code>, <code>chapters-style</code>, <code>shade</code>, <code>paper-light</code>, <code>depth</code>, <code>sound</code>, <code>magnifier-shape</code>, <code>seal</code>, <code>seal-src</code>, <code>seal-align</code>, <code>volume</code>, <code>remember</code> and <code>loading</code>, and your own colours are <code>wood</code>, <code>floor</code>, <code>paper</code>, <code>ink</code>, <code>wall</code> and <code>accent</code>. The lattice, frame, post size and shade strength are CSS custom properties.</p>
             <figure class="use-example">
               <tokonoma-player src="https://stream.mux.com/uvARTyBix02kTMuAOLGfaedhBu02teeI8P02YVezZ6GkKQ.m3u8" title="A Quiet Year" poster="media/poster.webp" chapters="media/chapters.vtt" captions="media/captions-en.vtt" captions-label="English (SDH)" fallback="media/quiet-year.mp4" fallback-thumbnails="media/thumbnails.vtt" preload="metadata" loading="lazy" theme="aizome" post="left" seal-align="center" remember="off"></tokonoma-player>
               <figcaption>Made from the tag above, with <code>theme="aizome"</code>, <code>post="left"</code> and <code>seal-align="center"</code>.</figcaption>

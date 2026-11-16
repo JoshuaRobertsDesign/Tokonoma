@@ -95,6 +95,8 @@ export function initKeys(container, video, { settings } = {}) {
     if (!osd) return;
     kind = what;
     paint(what, extra);
+    // Video.js announces volume and speed itself; the skin's own readouts are announced here
+    if (what === 'seek' || what === 'frame' || what === 'note') announcer.textContent = `${label.textContent}, ${value.textContent}`;
     clearTimeout(hideTimer);
     clearTimeout(resetTimer);
     osd.dataset.state = 'in';

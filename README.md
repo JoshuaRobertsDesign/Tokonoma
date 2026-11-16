@@ -201,7 +201,7 @@ the ids inside each settings door are made unique automatically.
 - **Captions**: the demo's track (`media/captions-en.vtt`) is SDH for a film with no dialogue:
   the music, its credit, where it rises and where it fades. `C` toggles captions.
 - **Checked**: axe-core (WCAG 2.1 AA) reports no issues, and Lighthouse gives accessibility 100
-  on desktop and mobile. The skin's own CSS and JS come to about 24 KB gzipped.
+  on desktop and mobile. The skin's own CSS and JS come to about 27 KB gzipped.
 
 ## License
 
