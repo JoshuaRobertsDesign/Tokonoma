@@ -372,3 +372,4 @@ Also to do: submission write-up, showcase recording, optional embed on joshuarob
 - Door pull's centre slot back to its original size (`.tk-pull-notch` inset 5px 10px; volume pull 10px 5px).
 - Settings-door toggle labels stay 8px inside the door (`placeTip` in menu.js sets `--tk-tip-dx`).
 - Site Keyboard block: label first with an icon, keys on the right, in an even grid (`.board-keylist` / `.board-key`).
+- Door pull's slot shadow follows `--tk-shade` (offset 1px + shade×2px, alpha shade×0.95 capped 0.6; none with shade off). The lattice's swing now turns its `::before` inside the lattice box (overflow hidden), so it never reaches over the floor or the top frame.

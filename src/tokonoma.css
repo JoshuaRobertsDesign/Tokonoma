@@ -560,6 +560,7 @@ video-player {
 .tk[data-shade='none'] .tk-title,
 .tk[data-shade='none'] .tk-preview-shadow { box-shadow: none !important; }
 .tk[data-shade='none'] .tk-mm-cast { display: none; }
+.tk[data-shade='none'] .tk-pull-notch { box-shadow: none; }
 /* floor up: the shadow settles a little deeper */
 .tk[data-floor-up] .tk-shade::before { opacity: 0; transition-duration: var(--tk-rise); }
 .tk[data-floor-up] .tk-shade::after { opacity: 1; transition-duration: var(--tk-rise); }
@@ -757,7 +758,9 @@ video-player {
   inset: 5px 10px;
   border-radius: 2.5px;
   background: var(--tk-hinoki);
-  box-shadow: inset calc(-2px * var(--tk-light-x)) 2px 1px 0 rgb(0 0 0 / 0.33);
+  /* its inner shadow follows the shade setting (0.33 at the default 0.35, none at 0) */
+  --tk-notch-off: calc(1px + var(--tk-shade) * 2px);
+  box-shadow: inset calc(-1 * var(--tk-notch-off) * var(--tk-light-x)) var(--tk-notch-off) 1px 0 rgb(0 0 0 / min(0.6, calc(var(--tk-shade) * 0.95)));
   transition: background-color 120ms var(--tk-ease-out);
 }
 .tk-seek[data-dragging] .tk-pull { translate: -50% calc(-50% + 1px); }
@@ -2393,21 +2396,23 @@ video-player {
    (0 – 1, default 0.7) sets how far it swings: 0 just fades in, 1 starts it
    side-on. It's in full view after the first quarter of the swing, and it starts
    darker (nearer the light, its shadow is stronger), easing to its set opacity as
-   it lands. */
+   it lands. The bars swing inside the lattice's own box (which stays put and clips
+   them), so the swing never reaches over the floor or the top of the frame. */
 .tk-mm-lattice {
   --tk-lattice-ink: min(0.6, calc(var(--tk-lattice-opacity) * (1 + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 4) + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 0.12));
   --tk-swing-turn: calc((1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 88deg);
   --tk-swing-scale: calc(1 + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 0.16);
-  transform-origin: 100% 50%;
-  transform: perspective(900px) rotateY(var(--tk-swing-turn)) scale(var(--tk-swing-scale));
   opacity: min(1, calc(var(--tk-mm-o) * 4));
 }
-.tk[data-post='left'] .tk-mm-lattice {
-  transform-origin: 0% 50%;
-  transform: perspective(900px) rotateY(calc(-1 * var(--tk-swing-turn))) scale(var(--tk-swing-scale));
+.tk-mm-lattice::before {
+  transform: perspective(900px) rotateY(var(--tk-swing-turn)) scale(var(--tk-swing-scale)) skewY(calc(var(--tk-light-x) * -1 * var(--tk-lattice-angle)));
+}
+.tk[data-post='left'] .tk-mm-lattice::before {
+  transform: perspective(900px) rotateY(calc(-1 * var(--tk-swing-turn))) scale(var(--tk-swing-scale)) skewY(calc(var(--tk-light-x) * -1 * var(--tk-lattice-angle)));
 }
 @media (prefers-reduced-motion: reduce) {
-  .tk-mm-lattice, .tk[data-post='left'] .tk-mm-lattice { transform: none; --tk-lattice-ink: var(--tk-lattice-opacity); }
+  .tk-mm-lattice { --tk-lattice-ink: var(--tk-lattice-opacity); }
+  .tk-mm-lattice::before, .tk[data-post='left'] .tk-mm-lattice::before { transform: skewY(calc(var(--tk-light-x) * -1 * var(--tk-lattice-angle))); }
 }
 .tk[data-shade='none'] .tk-mm-lattice { display: none; }
 @container tk-player (max-width: 600px) { .tk-mm-lattice { display: none; } }
