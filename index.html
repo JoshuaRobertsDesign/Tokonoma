@@ -153,8 +153,8 @@
               </div>
             </div>
             <div class="board-pair">
-              <span class="board-label">Depth</span>
-              <div class="demo-switch" role="radiogroup" aria-label="Parallax depth" data-attr="data-depth">
+              <span class="board-label">Parallax</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Parallax" data-attr="data-depth">
                 <button type="button" role="radio" aria-checked="true" data-value="on">On</button>
                 <button type="button" role="radio" aria-checked="false" data-value="off">Off</button>
               </div>
@@ -263,9 +263,9 @@
               <li><h3>A door for a seek bar</h3><p>The washi door slides with playback. Drag its pull, click anywhere along the groove to glide there, double-tap either side of the picture to skip ten seconds, or step frame by frame with , and . on the keyboard.</p></li>
               <li><h3>Chapters and previews</h3><p>Chapter joints in the groove, and a preview card that wipes in with the chapter title, the time and a thumbnail.</p></li>
               <li><h3>A volume door</h3><p>On the post, the volume icon is wiped away as a small vertical door rises, with its own pull and level.</p></li>
-              <li><h3>The settings door</h3><p>A second washi door slides out from behind the post: speed, captions, chapters with loop-a-chapter, light presets and picture adjustments, saving the frame on screen as a still (also Shift+S, or an optional camera on the picture), saving a clip, picture-in-picture, loop, a magnifier, depth and sounds.</p></li>
+              <li><h3>The settings door</h3><p>A second washi door slides out from behind the post: speed, captions, chapters with loop-a-chapter, light presets and picture adjustments, saving the frame on screen as a still (also Shift+S, or an optional camera on the picture), saving a clip, picture-in-picture, loop, a magnifier, parallax and sounds.</p></li>
               <li><h3>Light through paper</h3><p>The washi takes on a faint tint of whatever the scene is showing, the way paper glows with the light behind it. As the settings door opens, its kumiko lattice casts a shadow across the picture.</p></li>
-              <li><h3>Depth you can feel</h3><p>The picture, and the shade falling on it, drift a few pixels against the frame as you move the pointer or tilt your phone, so the alcove reads as a real recess. On iPhone it waits until you switch it on, so no permission prompt greets you.</p></li>
+              <li><h3>Parallax you can feel</h3><p>The picture, and the shade falling on it, drift a few pixels against the frame as you move the pointer or tilt your phone, so the alcove reads as a real recess. On iPhone it waits until you switch it on, so no permission prompt greets you.</p></li>
               <li><h3>A seal on the ending</h3><p>When the film ends, a hanko seal is pressed onto the shut door: the title's initials, your own text, or any SVG or PNG, at the left, centre or right.</p></li>
               <li><h3>Take a clip with you</h3><p>Mark a start and an end with I and O as it plays, from Settings → Clip, or by dragging the two wooden pegs that appear in the groove, then save the stretch between them to your device. It is recorded as it plays, as an MP4 where the browser can and WebM elsewhere. Off unless the site owner turns it on.</p></li>
               <li><h3>A closer look</h3><p>A round or square lens follows the pointer, or your finger, and shows the live picture enlarged; scroll over it to zoom from 1.5× to 5×, and hold Ctrl to resize it.</p></li>
@@ -336,7 +336,7 @@
   theme=&quot;hinoki&quot;&gt;
 &lt;/tokonoma-player&gt;</code></pre>
             </div>
-            <p>Every setting on this page is an attribute: <code>theme</code>, <code>post</code>, <code>aspect</code>, <code>title-align</code>, <code>title-layer</code>, <code>seek</code>, <code>floor</code>, <code>chapters-style</code>, <code>shade</code>, <code>paper-light</code>, <code>depth</code>, <code>sound</code>, <code>magnifier-shape</code>, <code>still-button</code>, <code>clip</code>, <code>seal</code>, <code>seal-src</code>, <code>seal-align</code>, <code>volume</code>, <code>remember</code> and <code>loading</code>, and your own colours are <code>wood</code>, <code>floor</code>, <code>paper</code>, <code>ink</code>, <code>wall</code> and <code>accent</code>. The lattice, frame, post size and shade strength are CSS custom properties.</p>
+            <p>Every setting on this page is an attribute: <code>theme</code>, <code>post</code>, <code>aspect</code>, <code>title-align</code>, <code>title-layer</code>, <code>seek</code>, <code>floor</code>, <code>chapters-style</code>, <code>shade</code>, <code>paper-light</code>, <code>parallax</code>, <code>sound</code>, <code>magnifier-shape</code>, <code>still-button</code>, <code>clip</code>, <code>seal</code>, <code>seal-src</code>, <code>seal-align</code>, <code>volume</code>, <code>remember</code> and <code>loading</code>, and your own colours are <code>wood</code>, <code>floor</code>, <code>paper</code>, <code>ink</code>, <code>wall</code> and <code>accent</code>. The lattice, frame, post size and shade strength are CSS custom properties.</p>
             <figure class="use-example">
               <tokonoma-player src="https://stream.mux.com/uvARTyBix02kTMuAOLGfaedhBu02teeI8P02YVezZ6GkKQ.m3u8" title="A Quiet Year" poster="media/poster.webp" chapters="media/chapters.vtt" captions="media/captions-en.vtt" captions-label="English (SDH)" fallback="media/quiet-year.mp4" fallback-thumbnails="media/thumbnails.vtt" preload="metadata" loading="lazy" theme="aizome" post="left" seal-align="center" remember="off"></tokonoma-player>
               <figcaption>Made from the tag above, with <code>theme="aizome"</code>, <code>post="left"</code> and <code>seal-align="center"</code>.</figcaption>

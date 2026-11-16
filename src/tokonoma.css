@@ -2389,6 +2389,27 @@ video-player {
   mask-image: linear-gradient(to right, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
 }
 .tk[data-post='left'] .tk-mm-lattice::before { background-position: left 0 top 0; transform-origin: 0% 50%; }
+/* it swings into place with the door: hinged on the edge that meets the door, it
+   comes from the foreground (turned towards you, a little larger, faint) and
+   settles flat against the picture just as the door comes to rest */
+.tk-mm-lattice {
+  transform-origin: 100% 50%;
+  transform:
+    perspective(900px)
+    rotateY(calc((1 - var(--tk-mm-o)) * 62deg))
+    scale(calc(1.1 - var(--tk-mm-o) * 0.1));
+  opacity: calc(var(--tk-mm-o) * var(--tk-mm-o));
+}
+.tk[data-post='left'] .tk-mm-lattice {
+  transform-origin: 0% 50%;
+  transform:
+    perspective(900px)
+    rotateY(calc((1 - var(--tk-mm-o)) * -62deg))
+    scale(calc(1.1 - var(--tk-mm-o) * 0.1));
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-mm-lattice, .tk[data-post='left'] .tk-mm-lattice { transform: none; }
+}
 .tk[data-shade='none'] .tk-mm-lattice { display: none; }
 @container tk-player (max-width: 600px) { .tk-mm-lattice { display: none; } }
 

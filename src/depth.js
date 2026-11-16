@@ -4,7 +4,7 @@
 // still while the floor is rising or sinking, and is off with reduced motion or
 // data-depth="off". On iOS, tilt needs permission, and asking pops up a prompt:
 // so there depth starts off, and asks only when it's switched on (askTilt, from
-// the settings door's Depth toggle or the demo's switch).
+// the settings door's Parallax toggle or the demo's switch).
 
 const clamp = (n) => Math.max(-1, Math.min(1, n));
 // only iPhone and iPad ask with a prompt (other browsers may have the method too)

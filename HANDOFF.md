@@ -366,3 +366,5 @@ Also to do: submission write-up, showcase recording, optional embed on joshuarob
 - Clip pegs: 44px hit areas on touch / phones; 1px × 4px ticks on the floor's top edge mark both ends. Readouts: "Still saved · PNG file", "Clip saved · MP4 file".
 - Site: "What makes it different" adds "a tool as well as a frame" with three pictures (public/process/feature-magnifier|clip|still.jpg); the lede mentions them.
 - Merged save-clip into main for submission; the `pre-clip` branch keeps the version before clips.
+- "Depth" is now "Parallax" wherever it's seen (board, settings-door tooltip, copy, README, Framer). `parallax="on|off"` on `<tokonoma-player>` (`depth` still accepted); internally still `data-depth` / depth.js.
+- The lattice swings in with the settings door: hinged on the edge meeting the door, rotateY 62° → 0, scale 1.1 → 1, opacity o², all driven by `--tk-mm-o`, so it settles as the door does. Flat with reduced motion.

@@ -34,7 +34,7 @@ Attributes: `src` (required; HLS and Mux go through `<mux-video>`, anything else
 `<video>`), `title`, `poster`, `chapters`, `thumbnails`, `captions`, `captions-label`,
 `captions-lang`, `fallback`, `fallback-thumbnails`, `preload`, `loading="lazy"`, and every
 setting below by its short name (`theme`, `post`, `title-align`, `title-layer`, `seek`, `floor`,
-`chapters-style`, `shade`, `paper-light`, `depth`, `sound`, `magnifier-shape`, `seal`,
+`chapters-style`, `shade`, `paper-light`, `parallax`, `sound`, `magnifier-shape`, `seal`,
 `seal-src`, `seal-align`, `volume`, `remember="off"`). Any `data-*` attribute passes straight
 through. The demo page's own player is built from the same template (`src/skin.html`) at build
 time, so the two never drift apart.
@@ -57,7 +57,7 @@ time, so the two never drift apart.
 | `src/still.js` | Save still: downloads the frame on screen as a PNG, with the Picture settings applied (settings door → Picture) |
 | `src/light.js` | Light through paper: tints the washi with the picture's colour |
 | `src/seal.js` | The hanko seal pressed onto the door when the video ends |
-| `src/depth.js` | Parallax depth from the pointer or the phone's tilt |
+| `src/depth.js` | Parallax from the pointer or the phone's tilt |
 | `src/magnifier.js` | The magnifier lens |
 | `src/sound.js` | Optional interface sounds, synthesised with Web Audio |
 | `src/prefs.js` | Remembers speed, volume, colour scheme and sound between visits, and resumes each video where it was left (by address) |
@@ -81,7 +81,7 @@ Set on `.tk` (or any parent):
 | `data-seek` | `solid` | `clear` lays a frosted, see-through floor over the picture instead of lifting it |
 | `data-theme` | `hinoki` | Colour scheme: `hinoki` (walnut, cypress and washi), `urushi` (black lacquer, vermilion, gold), `aizome` (indigo, white, kihada yellow) or `sakura` (plum, blossom, leaf green). Changing it fades between palettes |
 | `data-paper-light` | `on` | `off` stops the washi taking on the picture's colour (needs a CORS-clean video; otherwise it quietly stays plain) |
-| `data-depth` | `on` | `off` stops the parallax drift of the wall (always off with reduced motion) |
+| `data-depth` | `on` | Parallax (`parallax` on `<tokonoma-player>`): `off` stops the wall's drift (always off with reduced motion). On iPhone and iPad it starts off, with no motion-permission prompt, until switched on in the settings door |
 | `data-sound` | `off` | `on` plays a wooden click on the door pulls, a paper slide on the settings door and a thud for the seal |
 | `data-magnifier` | — | Present while the magnifier lens is on (toggled from the settings door or with Z) |
 | `data-seal` | title initials | Text for the seal pressed onto the door at the end: up to three letters make a square seal (two stack), longer text a wider one |
