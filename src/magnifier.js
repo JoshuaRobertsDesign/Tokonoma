@@ -2,7 +2,8 @@
 // A round lens over the picture that shows the live frame enlarged. Turned on from
 // the settings door's toggle strip, or with Z; Esc turns it off. It follows the
 // mouse; on touch, press and drag on the picture and the lens rides above your
-// finger, showing what's under the lens itself (not under the finger). The wheel (or trackpad) over the lens changes the zoom, 1.5× to 5×.
+// finger, showing what's under the lens itself (not under the finger). The wheel (or trackpad) over the lens changes the zoom, 1.5× to 5×; with Ctrl
+// (⌘, or a pinch) it changes the lens's size.
 
 const MIN = 1.5;
 const MAX = 5;
@@ -104,10 +105,24 @@ export function initMagnifier(container, video, { host = video } = {}) {
   alcove.addEventListener('pointercancel', hide);
   alcove.addEventListener('pointerleave', (e) => { last = null; hide(e); });
 
+  // the wheel zooms; with Ctrl (or ⌘, or a trackpad pinch) it grows or shrinks the lens
+  let sizeTimer = 0;
   alcove.addEventListener('wheel', (e) => {
     if (!on() || !visible) return;
     e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      const r = alcove.getBoundingClientRect();
+      const max = Math.max(120, Math.min(440, Math.min(r.width, r.height) * 0.9));
+      const size = Math.round(Math.max(88, Math.min(max, lens.offsetWidth * (e.deltaY < 0 ? 1.08 : 1 / 1.08))));
+      lens.style.setProperty('--tk-lens', `${size}px`);
+      tag.textContent = `${size}px`;
+      clearTimeout(sizeTimer);
+      sizeTimer = setTimeout(showZoom, 900);
+      if (!raf) raf = requestAnimationFrame(draw);
+      return;
+    }
     zoom = Math.max(MIN, Math.min(MAX, zoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));
+    clearTimeout(sizeTimer);
     showZoom();
   }, { passive: false });
 

@@ -52,7 +52,7 @@ time, so the two never drift apart.
 | `src/element.js`, `src/lib.js` | `<tokonoma-player>`, and the entry for the embeddable build (`vite.lib.config.js`) |
 | `src/captions.js` | Captions set on washi strips that rise with the floor (the browser's own rendering is hidden) |
 | `src/fonts.css` | JetBrains Mono, Latin and Latin Extended only |
-| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier, `,` / `.` one frame back / forward) and the washi readout for volume, speed, seeking (keys and double-tap), frames and chapters |
+| `src/keys.js` | Extra keys (P / N chapters, S settings, Z magnifier, `,` / `.` one frame back / forward, Shift+S save a still) and the washi readout for volume, speed, seeking (keys and double-tap), frames and chapters |
 | `src/still.js` | Save still: downloads the frame on screen as a PNG, with the Picture settings applied (settings door → Picture) |
 | `src/light.js` | Light through paper: tints the washi with the picture's colour |
 | `src/seal.js` | The hanko seal pressed onto the door when the video ends |
@@ -88,6 +88,7 @@ Set on `.tk` (or any parent):
 | `data-seal-align` | `left` | `left` beside replay, `center` in the middle of the door, `right` beside the time |
 | `--tk-seal-ink` | scheme accent | The seal's ink colour for text seals |
 | `data-magnifier-shape` | `circle` | `square` for a square lens |
+| `data-still-button` | `off` | `on` puts a camera on the picture (above the floor, while it's up) that saves the frame on screen; it opens to "Save still" on hover or focus. On phones it, and Save still in the settings door, appear only in fullscreen. Shift+S works everywhere |
 | `data-aspect` | `auto` | The frame's shape: `auto` takes the video's own (16:9 until it's known), or any `w:h` (`4:3`, `21:9`, `1:1`, `9:16`…). The whole picture shows (letterboxed where shapes differ), and a tall frame narrows the player rather than running past the screen's height |
 | `--tk-lattice-angle` | `20deg` | How far the light rakes the settings door's lattice shadow |
 | `--tk-lattice-size` | `54px` | Width of a lattice cell (cells are 1.4× as tall) |

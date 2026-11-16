@@ -16,6 +16,7 @@ import { initSeal } from './seal.js';
 import { initDepth } from './depth.js';
 import { initMagnifier } from './magnifier.js';
 import { initCaptions } from './captions.js';
+import { initStillButton } from './still.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -235,6 +236,7 @@ function initTokonoma(container) {
   initLight(container, video);
   initSeal(container, { sound });
   initDepth(container);
+  initStillButton(container, video, host);
   initAspect(container, video);
   initMagnifier(container, video, { host });
   initCaptions(container, video, { host });

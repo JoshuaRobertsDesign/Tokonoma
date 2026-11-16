@@ -7,6 +7,11 @@
 const pad2 = (n) => String(n).padStart(2, '0');
 const slug = (s) => (s || 'still').toLowerCase().normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/[\s_]+/g, '-').slice(0, 48) || 'still';
 
+// the camera on the picture, when data-still-button="on"
+export function initStillButton(container, video, host = video) {
+  container.querySelector('.tk-still')?.addEventListener('click', () => saveStill(container, video, host));
+}
+
 export function saveStill(container, video, host = video) {
   const note = (label, value, icon = 'still') => container.tkReadout?.('note', { icon, label, value });
   const w = video.videoWidth;

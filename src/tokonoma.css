@@ -87,6 +87,13 @@ video-player {
   --tk-shade-off: calc(6px + var(--tk-shade) * 18px);
   --tk-shade-blur: calc(6px + var(--tk-shade) * 10px);
   --tk-shade-a: calc(0.16 + var(--tk-shade) * 0.14);
+  /* cards hanging from the lintel (the title, the phone's button card) */
+  --tk-card-shadow:
+    calc(-0.6 * var(--tk-shade-dir) * var(--tk-shade-off))
+    calc(var(--tk-shade-off) * 0.6)
+    calc(var(--tk-shade-blur) * 1.6)
+    calc(var(--tk-shade-off) * -0.3)
+    rgb(0 0 0 / var(--tk-shade-a));
   --tk-rest-brightness: 0.9;
   --tk-rest-contrast: 1;
 
@@ -296,14 +303,9 @@ video-player {
   background: var(--tk-washi-card);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
-  /* its shadow joins the lintel's: offset away from the post and dropped by
-     the shade's reach, but spread so it still starts at the lintel itself */
-  box-shadow:
-    calc(-1 * var(--tk-shade-dir) * var(--tk-shade-off))
-    calc(var(--tk-shade-off) / 2)
-    var(--tk-shade-blur)
-    calc(var(--tk-shade-off) / 2)
-    rgb(0 0 0 / var(--tk-shade-a));
+  /* its shadow falls away from the post and down, soft enough that it fades out
+     before the lintel at any strength (a hard cut there would show) */
+  box-shadow: var(--tk-card-shadow);
   color: var(--tk-sumi);
   font-size: 16px;
   font-weight: 500;
@@ -2010,6 +2012,8 @@ video-player {
   .tk .tk-preview { width: 116px; }
   .tk { --tk-pv-half: 58px; }
   .tk .tk-preview-thumb { width: 108px; min-width: 108px; max-width: 108px; height: 60.75px; min-height: 60.75px; max-height: 60.75px; }
+  .tk .tk-preview-label { width: 108px; }   /* the card is as wide as its picture */
+  .tk .tk-preview-card { width: 116px; }
   /* short groove: the joints shrink with it */
   .tk .tk-chapter:not(:first-of-type)::before,
   .tk .tk-chapter:not(:first-of-type)::after { width: 6px; }
@@ -2048,23 +2052,18 @@ video-player {
     backdrop-filter: blur(5px);
     border: 0;
     color: var(--tk-walnut);
-    box-shadow:
-      0
-      calc(var(--tk-shade-off) / 2)
-      var(--tk-shade-blur)
-      calc(var(--tk-shade-off) / 2)
-      rgb(0 0 0 / var(--tk-shade-a));
+    box-shadow: var(--tk-card-shadow);
     transform: none;
     filter: none;
     opacity: 1;
     /* hangs from the lintel: unmasked downwards (room left for its shadow) */
-    clip-path: inset(0 -16px 100% -16px);
+    clip-path: inset(0 -40px 100% -40px);
     pointer-events: none;
     transition: clip-path var(--tk-sink) var(--tk-ease-out);
   }
   .tk[data-post][data-floor-up] .tk-post,
   .tk[data-post][data-error] .tk-post {
-    clip-path: inset(0 -16px -16px -16px);
+    clip-path: inset(0 -48px -48px -48px);   /* room for its softest shadow */
     pointer-events: auto;
     transition-duration: var(--tk-rise);
   }
@@ -2073,7 +2072,7 @@ video-player {
   .tk .tk-post::before { display: none; }
   /* while the settings door is open, the two banners wipe back up behind the lintel */
   .tk[data-post][data-floor-up][data-tk-mm-open] .tk-post {
-    clip-path: inset(0 -16px 100% -16px);
+    clip-path: inset(0 -40px 100% -40px);
     pointer-events: none;
     transition-duration: 300ms;
   }
@@ -2614,3 +2613,59 @@ video-player {
   .tk .tk-time { font-size: 11px; }
   .tk .tk-pull { height: 26px; }
 }
+
+/* ── Save still, on the picture (data-still-button="on") ─────────────────────────
+   A small washi card resting on the floor's edge while the floor is up: a camera
+   alone, which opens to "Save still" on hover or focus. On phones it only shows
+   in fullscreen, where there's room. */
+.tk-still {
+  position: absolute;
+  z-index: 6;
+  right: 12px;
+  bottom: calc(var(--tk-floor-h) + 12px);
+  display: none;
+  align-items: center;
+  gap: 0;
+  height: 40px;
+  padding: 0 11px;
+  border: 0;
+  background: var(--tk-washi-card);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 calc(var(--tk-shade-off) / 3) calc(var(--tk-shade-blur) * 1.2) calc(var(--tk-shade-off) / -4) rgb(0 0 0 / var(--tk-shade-a));
+  color: var(--tk-walnut);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  /* unmasked upwards from the floor's edge with the floor; wiped back down as it sinks */
+  clip-path: inset(100% -40px -40px -40px);
+  pointer-events: none;
+  transition: clip-path var(--tk-sink) var(--tk-ease-out), gap 360ms var(--tk-ease-out);
+}
+.tk[data-still-button='on'] .tk-still { display: flex; }
+.tk[data-post='tuck'] .tk-still { right: calc(var(--tk-post-w) - var(--tk-frame) + 12px); }
+.tk[data-floor-up]:not([data-tk-mm-open]):not([data-magnifier]) .tk-still {
+  clip-path: inset(-40px);
+  pointer-events: auto;
+  transition-duration: var(--tk-rise), 360ms;
+}
+.tk-still-ic { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 14; stroke-linejoin: round; }
+.tk-still-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(0 100% 0 0);
+  transition: max-width 360ms var(--tk-ease-out), clip-path 360ms var(--tk-ease-out);
+}
+.tk-still:is(:hover, :focus-visible) { gap: 8px; }
+.tk-still:is(:hover, :focus-visible) .tk-still-label { max-width: 120px; clip-path: inset(0); }
+.tk-still:focus-visible { outline: 2px solid var(--tk-matcha); outline-offset: 2px; }
+.tk-still:active .tk-still-ic { translate: 0 1px; }
+/* phones: on the picture and in the settings door only in fullscreen */
+@container tk-player (max-width: 600px) {
+  .tk:not(:fullscreen) .tk-still,
+  .tk:not(:fullscreen) .tk-mm [data-action='still'] { display: none; }
+  .tk .tk-still { right: 10px; bottom: calc(var(--tk-floor-h) + 10px); height: 36px; padding: 0 9px; }
+}
+@media (prefers-reduced-motion: reduce) { .tk-still, .tk-still-label { transition: none; } }

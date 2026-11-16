@@ -89,6 +89,7 @@ interface Props {
     extras: {
         sound: boolean
         magnifierShape: string
+        stillButton: boolean
         seal: string
         sealImage?: Img
         sealAlign: string
@@ -151,6 +152,7 @@ export default function TokonomaPlayer(props: Props) {
             depth: light.depth ? "on" : "off",
             sound: extras.sound ? "on" : "off",
             "magnifier-shape": extras.magnifierShape,
+            "still-button": extras.stillButton ? "on" : "off",
             "seal-align": extras.sealAlign,
             volume: String(extras.volume),
             remember: extras.remember ? "on" : "off",
@@ -282,6 +284,7 @@ const DEFAULTS = {
     extras: {
         sound: false,
         magnifierShape: "circle",
+        stillButton: false,
         seal: "",
         sealAlign: "left",
         volume: 0.8,
@@ -426,6 +429,12 @@ addPropertyControls(TokonomaPlayer, {
                 optionTitles: ["Round", "Square"],
                 displaySegmentedControl: true,
                 defaultValue: "circle",
+            },
+            stillButton: {
+                type: ControlType.Boolean,
+                title: "Still Button",
+                defaultValue: false,
+                description: "A camera on the picture that saves the frame (phones: fullscreen only). Shift+S works either way.",
             },
             seal: { type: ControlType.String, title: "Seal Text", placeholder: "Title initials" },
             sealImage: { type: ControlType.ResponsiveImage, title: "Seal Image" },

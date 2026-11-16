@@ -3,9 +3,12 @@
 //   S       open or close the settings door
 //   Z       magnifier on / off
 //   , / .   one frame back / forward (pausing first)
+//   Shift+S save the frame on screen as a still
 // and a washi readout that wipes in over the picture when volume, mute, speed or
 // chapter change from the keyboard. Video.js handles the volume and speed keys
 // itself; this only watches for them so it can show the result.
+
+import { saveStill } from './still.js';
 
 const RATE_LABEL = (r) => (r === 1 ? 'Normal' : `${r}×`);
 const READOUT_KEYS = new Set(['ArrowUp', 'ArrowDown', '<', '>', 'm', 'M']);
@@ -218,6 +221,9 @@ export function initKeys(container, video, { settings } = {}) {
       e.preventDefault();
       container.toggleAttribute('data-magnifier');
       if (container.hasAttribute('data-magnifier')) settings?.close({ returnFocus: true });
+    } else if (k === 's' && e.shiftKey && !e.repeat) {
+      e.preventDefault();
+      saveStill(container, video, container.querySelector('.tk-video') || video);
     } else if (k === 's' && settings && !e.repeat) {
       e.preventDefault();
       if (settings.isOpen()) settings.close({ returnFocus: true });
