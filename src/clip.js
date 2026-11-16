@@ -109,7 +109,7 @@ export function initClip(container, video, host = video) {
       if (edge === 'in') b = a + MAX; else a = b - MAX;
     }
     render();
-    if (announce) note(edge === 'in' ? 'Clip start' : 'Clip end', `${clock(a)}–${clock(b)} · ${clock(b - a)}`, d ? b / d : 1);
+    if (announce) note(edge === 'in' ? 'Clip start' : 'Clip end', `${clock(a)}–${clock(b)}`, d ? b / d : 1);
   }
   function clear() {
     if (job) return;
@@ -137,7 +137,7 @@ export function initClip(container, video, host = video) {
       const up = () => {
         peg.removeEventListener('pointermove', move);
         peg.removeAttribute('data-dragging');
-        note(edge === 'in' ? 'Clip start' : 'Clip end', `${clock(a)}–${clock(b)} · ${clock(b - a)}`, b / (dur() || 1));
+        note(edge === 'in' ? 'Clip start' : 'Clip end', `${clock(a)}–${clock(b)}`, b / (dur() || 1));
       };
       peg.addEventListener('pointermove', move);
       peg.addEventListener('pointerup', up, { once: true });
