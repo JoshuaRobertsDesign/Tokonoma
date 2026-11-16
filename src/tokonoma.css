@@ -2638,17 +2638,21 @@ video-player {
   font-size: 13px;
   letter-spacing: 0.04em;
   cursor: pointer;
-  /* unmasked upwards from the floor's edge with the floor; wiped back down as it sinks */
-  clip-path: inset(100% -40px -40px -40px);
+  /* unmasked upwards from the floor's edge with the floor; wiped back down as it
+     sinks (fully shut: not even its shadow shows) */
+  clip-path: inset(100% -40px 0 -40px);
+  visibility: hidden;
   pointer-events: none;
-  transition: clip-path var(--tk-sink) var(--tk-ease-out), gap 360ms var(--tk-ease-out);
+  transition: clip-path var(--tk-sink) var(--tk-ease-out), gap 360ms var(--tk-ease-out), visibility 0s linear var(--tk-sink);
 }
 .tk[data-still-button='on'] .tk-still { display: flex; }
 .tk[data-post='tuck'] .tk-still { right: calc(var(--tk-post-w) - var(--tk-frame) + 12px); }
-.tk[data-floor-up]:not([data-tk-mm-open]):not([data-magnifier]) .tk-still {
+.tk[data-floor-up]:not([data-tk-mm-open]) .tk-still {
   clip-path: inset(-40px);
+  visibility: visible;
   pointer-events: auto;
-  transition-duration: var(--tk-rise), 360ms;
+  transition-duration: var(--tk-rise), 360ms, 0s;
+  transition-delay: 0s;
 }
 .tk-still-ic { flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 14; stroke-linejoin: round; }
 .tk-still-label {
