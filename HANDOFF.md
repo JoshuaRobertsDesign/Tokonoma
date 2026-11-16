@@ -362,3 +362,4 @@ Also to do: submission write-up, showcase recording, optional embed on joshuarob
 - Recording: seek to start, play at 1×, MediaRecorder until the end (rAF watch); a pause or seek by anyone cancels. Chrome/Edge: `video.captureStream()`; Safari/Firefox: canvas.captureStream(30) + Web Audio (MediaElementSource made once per element, still routed to the speakers). Types: H.264 MP4 → WebM VP9/VP8 → bare MP4. Readout shows progress; the band fills (`--tk-clip-p`).
 - Clip card on the picture (bottom-left above the floor, right when the post is left): Save clip + length, × to clear; "Cancel" while recording.
 - Tested (Chromium): I/O, peg drag (no seek), 7s clip saved in ~7s as a 1280×720 file with sound; phone menu flow; axe clean. Not tested on Safari/Firefox.
+- WebM clips get their length written in (fix-webm-duration, MIT), so players can show and seek them.

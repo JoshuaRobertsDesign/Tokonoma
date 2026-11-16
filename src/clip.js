@@ -10,6 +10,7 @@
 // through Web Audio. Either way the video must be CORS-clean (Mux and same-site
 // files are). Clips run up to five minutes.
 
+import fixWebmDuration from 'fix-webm-duration';
 import { download, slug } from './still.js';
 
 const MAX = 300;          // seconds
@@ -217,7 +218,7 @@ export function initClip(container, video, host = video) {
     }
     const chunks = [];
     rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
-    job = { rec, source, restore, name, type, chunks, ok: false, ending: false };
+    job = { rec, source, restore, name, type, chunks, ok: false, ending: false, started: 0 };
     container.toggleAttribute('data-clip-recording', true);
     render();
 
@@ -236,6 +237,7 @@ export function initClip(container, video, host = video) {
     }, 500);
 
     rec.start(250);
+    job.started = performance.now();
     video.loop = false;
     video.playbackRate = 1;
     try { await video.play(); } catch { finish(false); return; }
@@ -265,8 +267,13 @@ export function initClip(container, video, host = video) {
       if (!j.ok) { note('Clip cancelled', 'Nothing was saved', 0); return; }
       const blob = new Blob(j.chunks, { type: j.type.split(';')[0] });
       if (!blob.size) { note('Save clip', "Couldn't record this video"); return; }
-      download(blob, j.name);
-      note('Clip saved', `Downloaded as ${j.name.split('.').pop().toUpperCase()}`);
+      const done = (file) => {
+        download(file, j.name);
+        note('Clip saved', `Downloaded as ${j.name.split('.').pop().toUpperCase()}`);
+      };
+      // recorded WebM carries no length, so players can't show or seek it: write it in
+      if (j.type.includes('webm')) fixWebmDuration(blob, performance.now() - j.started, { logger: false }).then(done, () => done(blob));
+      else done(blob);
     };
     if (j.rec.state !== 'inactive') j.rec.stop(); else j.rec.onstop();
   }
