@@ -368,3 +368,7 @@ Also to do: submission write-up, showcase recording, optional embed on joshuarob
 - Merged save-clip into main for submission; the `pre-clip` branch keeps the version before clips.
 - "Depth" is now "Parallax" wherever it's seen (board, settings-door tooltip, copy, README, Framer). `parallax="on|off"` on `<tokonoma-player>` (`depth` still accepted); internally still `data-depth` / depth.js.
 - The lattice swings in with the settings door: hinged on the edge meeting the door, rotateY 62° → 0, scale 1.1 → 1, opacity o², all driven by `--tk-mm-o`, so it settles as the door does. Flat with reduced motion.
+- Round 45: lattice swing strength is `--tk-lattice-swing` (0–1, default 0.7; board Lattice → Swing; Framer Lattice → Swing). Turn = swing × 88°, scale 1 + swing × 0.16, in full view after a quarter of the swing; the bars start darker (`--tk-lattice-ink`, up to ~0.39 at the defaults, capped 0.6) and ease to `--tk-lattice-opacity` as the door lands.
+- Door pull's centre slot back to its original size (`.tk-pull-notch` inset 5px 10px; volume pull 10px 5px).
+- Settings-door toggle labels stay 8px inside the door (`placeTip` in menu.js sets `--tk-tip-dx`).
+- Site Keyboard block: label first with an icon, keys on the right, in an even grid (`.board-keylist` / `.board-key`).

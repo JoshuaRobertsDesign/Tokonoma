@@ -174,10 +174,26 @@ body { font-family: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, m
 @media (hover: hover) { .board-action:hover::before { scale: 1 1; } }
 .board-action:active::before { scale: 1 1; }
 .board-action:focus-visible { outline: 2px solid #507024; outline-offset: -4px; }
-.board-keylist { display: flex; flex-wrap: wrap; gap: 12px 28px; margin: 0; }
-.board-key { display: flex; align-items: center; gap: 10px; }
-.board-key dt { display: flex; gap: 4px; }
-.board-key dd { margin: 0; font-size: 12px; color: var(--b-washi); }
+/* an even grid: what it does (with an icon) first, the keys after, so a column of
+   actions can be read straight down */
+.board-keylist {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 248px), 1fr));
+  gap: 6px 28px;
+  margin: 0;
+}
+.board-key {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgb(239 230 214 / 0.1);
+}
+.board-key dt { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 12px; line-height: 16px; color: var(--b-washi); }
+.board-key-ic { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; opacity: 0.8; }
+.board-key dd { display: flex; gap: 4px; margin: 0; }
 .board-key kbd {
   min-width: 28px;
   padding: 4px 7px;

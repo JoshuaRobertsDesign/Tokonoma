@@ -85,6 +85,7 @@ interface Props {
         angle: number
         size: number
         opacity: number
+        swing: number
     }
     extras: {
         sound: boolean
@@ -199,6 +200,7 @@ export default function TokonomaPlayer(props: Props) {
             tk.style.setProperty("--tk-lattice-angle", `${lattice.angle}deg`)
             tk.style.setProperty("--tk-lattice-size", `${lattice.size}px`)
             tk.style.setProperty("--tk-lattice-opacity", String(lattice.opacity))
+            tk.style.setProperty("--tk-lattice-swing", String(lattice.swing))
             return true
         }
         if (apply()) return
@@ -282,7 +284,7 @@ const DEFAULTS = {
         postSize: 60,
         frame: 2,
     },
-    lattice: { angle: 20, size: 54, opacity: 0.08 },
+    lattice: { angle: 20, size: 54, opacity: 0.08, swing: 0.7 },
     extras: {
         sound: false,
         magnifierShape: "circle",
@@ -418,6 +420,7 @@ addPropertyControls(TokonomaPlayer, {
             angle: { type: ControlType.Number, title: "Angle", min: -30, max: 30, step: 1, unit: "°", defaultValue: 20 },
             size: { type: ControlType.Number, title: "Size", min: 20, max: 80, step: 1, unit: "px", defaultValue: 54 },
             opacity: { type: ControlType.Number, title: "Opacity", min: 0, max: 0.5, step: 0.01, defaultValue: 0.08 },
+            swing: { type: ControlType.Number, title: "Swing", min: 0, max: 1, step: 0.05, defaultValue: 0.7, description: "How far it swings in as the settings door opens." },
         },
     },
     extras: {

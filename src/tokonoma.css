@@ -753,7 +753,8 @@ video-player {
 }
 .tk-pull-notch {
   position: absolute;
-  inset: 4px 9px;
+  /* the original hole: 8px wide, 5px in from the pull's ends, centred in the wood */
+  inset: 5px 10px;
   border-radius: 2.5px;
   background: var(--tk-hinoki);
   box-shadow: inset calc(-2px * var(--tk-light-x)) 2px 1px 0 rgb(0 0 0 / 0.33);
@@ -1300,7 +1301,7 @@ video-player {
   outline: none;
 }
 .tk-vol-pull::before { inset: 8px 0; }
-.tk-vol-pull .tk-pull-notch { inset: 10px 4px; }
+.tk-vol-pull .tk-pull-notch { inset: 10px 5px; }
 .tk-vol[data-dragging] .tk-vol-pull .tk-pull-notch { background: var(--tk-matcha); }
 .tk-vol-pull:focus-visible::before {
   outline: 2px solid var(--tk-matcha);
@@ -1566,7 +1567,8 @@ video-player {
   position: absolute;
   bottom: calc(100% + 6px);
   left: 50%;
-  translate: -50% 4px;
+  /* --tk-tip-dx (menu.js) nudges it to stay 8px inside the door's edges */
+  translate: calc(-50% + var(--tk-tip-dx, 0px)) 4px;
   padding: 4px 8px;
   background: var(--tk-walnut);
   color: var(--tk-washi);
@@ -1577,16 +1579,10 @@ video-player {
   opacity: 0;
   transition: opacity 160ms var(--tk-ease-out), translate 160ms var(--tk-ease-out);
 }
-.tk-mm-tog:first-child .tk-mm-tip { left: 8px; translate: 0 4px; }
-.tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close) .tk-mm-tip { left: auto; right: 8px; translate: 0 4px; }
 @media (hover: hover) {
-  .tk-mm-tog:hover .tk-mm-tip { opacity: 1; translate: -50% 0; }
-  .tk-mm-tog:first-child:hover .tk-mm-tip,
-  .tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close):hover .tk-mm-tip { translate: 0 0; }
+  .tk-mm-tog:hover .tk-mm-tip { opacity: 1; translate: calc(-50% + var(--tk-tip-dx, 0px)) 0; }
 }
-.tk-mm-tog:focus-visible .tk-mm-tip { opacity: 1; translate: -50% 0; }
-.tk-mm-tog:first-child:focus-visible .tk-mm-tip,
-.tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close):focus-visible .tk-mm-tip { translate: 0 0; }
+.tk-mm-tog:focus-visible .tk-mm-tip { opacity: 1; translate: calc(-50% + var(--tk-tip-dx, 0px)) 0; }
 
 /* picture: light presets */
 .tk-mm-chips { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 8px; }
@@ -2350,11 +2346,13 @@ video-player {
    wash, fading away from the door's edge. Adjustable on the player:
      --tk-lattice-angle    how far the light rakes the bars (default 20deg)
      --tk-lattice-size     the width of a lattice cell (default 54px; cells are 1.4× as tall)
-     --tk-lattice-opacity  the darkness of the bars, 0 – 1 (default 0.08)                */
+     --tk-lattice-opacity  the darkness of the bars, 0 – 1 (default 0.08)
+     --tk-lattice-swing    how far it swings in as the door opens, 0 – 1 (default 0.7) */
 .tk {
   --tk-lattice-angle: 20deg;
   --tk-lattice-size: 54px;
   --tk-lattice-opacity: 0.08;
+  --tk-lattice-swing: 0.7;
 }
 .tk-mm-lattice {
   --tk-lattice-w: calc(var(--tk-lattice-size) * 6);
@@ -2375,9 +2373,9 @@ video-player {
   position: absolute;
   inset: -50% 0;
   background:
-    repeating-linear-gradient(90deg, rgb(0 0 0 / var(--tk-lattice-opacity)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) var(--tk-lattice-size)),
-    repeating-linear-gradient(0deg, rgb(0 0 0 / var(--tk-lattice-opacity)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) calc(var(--tk-lattice-size) * 1.4)),
-    linear-gradient(to left, rgb(0 0 0 / calc(var(--tk-lattice-opacity) * 0.6)), transparent 80%);
+    repeating-linear-gradient(90deg, rgb(0 0 0 / var(--tk-lattice-ink)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) var(--tk-lattice-size)),
+    repeating-linear-gradient(0deg, rgb(0 0 0 / var(--tk-lattice-ink)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) calc(var(--tk-lattice-size) * 1.4)),
+    linear-gradient(to left, rgb(0 0 0 / calc(var(--tk-lattice-ink) * 0.6)), transparent 80%);
   background-position: right 0 top 0;
   filter: blur(1.2px);
   transform: skewY(calc(var(--tk-light-x) * -1 * var(--tk-lattice-angle)));
@@ -2390,25 +2388,26 @@ video-player {
 }
 .tk[data-post='left'] .tk-mm-lattice::before { background-position: left 0 top 0; transform-origin: 0% 50%; }
 /* it swings into place with the door: hinged on the edge that meets the door, it
-   comes from the foreground (turned towards you, a little larger, faint) and
-   settles flat against the picture just as the door comes to rest */
+   comes from the foreground (turned towards you and a little larger) and settles
+   flat against the picture just as the door comes to rest. --tk-lattice-swing
+   (0 – 1, default 0.7) sets how far it swings: 0 just fades in, 1 starts it
+   side-on. It's in full view after the first quarter of the swing, and it starts
+   darker (nearer the light, its shadow is stronger), easing to its set opacity as
+   it lands. */
 .tk-mm-lattice {
+  --tk-lattice-ink: min(0.6, calc(var(--tk-lattice-opacity) * (1 + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 4) + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 0.12));
+  --tk-swing-turn: calc((1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 88deg);
+  --tk-swing-scale: calc(1 + (1 - var(--tk-mm-o)) * var(--tk-lattice-swing) * 0.16);
   transform-origin: 100% 50%;
-  transform:
-    perspective(900px)
-    rotateY(calc((1 - var(--tk-mm-o)) * 62deg))
-    scale(calc(1.1 - var(--tk-mm-o) * 0.1));
-  opacity: calc(var(--tk-mm-o) * var(--tk-mm-o));
+  transform: perspective(900px) rotateY(var(--tk-swing-turn)) scale(var(--tk-swing-scale));
+  opacity: min(1, calc(var(--tk-mm-o) * 4));
 }
 .tk[data-post='left'] .tk-mm-lattice {
   transform-origin: 0% 50%;
-  transform:
-    perspective(900px)
-    rotateY(calc((1 - var(--tk-mm-o)) * -62deg))
-    scale(calc(1.1 - var(--tk-mm-o) * 0.1));
+  transform: perspective(900px) rotateY(calc(-1 * var(--tk-swing-turn))) scale(var(--tk-swing-scale));
 }
 @media (prefers-reduced-motion: reduce) {
-  .tk-mm-lattice, .tk[data-post='left'] .tk-mm-lattice { transform: none; }
+  .tk-mm-lattice, .tk[data-post='left'] .tk-mm-lattice { transform: none; --tk-lattice-ink: var(--tk-lattice-opacity); }
 }
 .tk[data-shade='none'] .tk-mm-lattice { display: none; }
 @container tk-player (max-width: 600px) { .tk-mm-lattice { display: none; } }

@@ -491,6 +491,25 @@ export function initSettings(container, video, { onToggle, host = video } = {}) 
     panel.querySelector('[data-action="depth"]')?.setAttribute('aria-pressed', String(container.getAttribute('data-depth') !== 'off'));
   };
   new MutationObserver(syncAttrToggles).observe(container, { attributes: true, attributeFilter: ['data-magnifier', 'data-sound', 'data-depth'] });
+
+  // the toggles' labels stay inside the door, 8px from its edges
+  const placeTip = (btn) => {
+    const tip = btn.querySelector('.tk-mm-tip');
+    if (!tip) return;
+    const pad = 8;
+    const box = panel.getBoundingClientRect();
+    const b = btn.getBoundingClientRect();
+    const w = tip.offsetWidth;
+    const centre = b.left + b.width / 2;
+    let dx = 0;
+    if (centre - w / 2 < box.left + pad) dx = box.left + pad - (centre - w / 2);
+    else if (centre + w / 2 > box.right - pad) dx = box.right - pad - (centre + w / 2);
+    tip.style.setProperty('--tk-tip-dx', `${Math.round(dx)}px`);
+  };
+  panel.querySelectorAll('.tk-mm-tog').forEach((btn) => {
+    btn.addEventListener('pointerenter', () => placeTip(btn));
+    btn.addEventListener('focus', () => placeTip(btn));
+  });
   syncAttrToggles();
 
   // ── Rendering of the dynamic lists ──────────────────────────────────────────

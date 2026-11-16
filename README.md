@@ -95,6 +95,7 @@ Set on `.tk` (or any parent):
 | `--tk-lattice-angle` | `20deg` | How far the light rakes the settings door's lattice shadow |
 | `--tk-lattice-size` | `54px` | Width of a lattice cell (cells are 1.4× as tall) |
 | `--tk-lattice-opacity` | `0.08` | Darkness of the lattice bars, `0`–`1` |
+| `--tk-lattice-swing` | `0.7` | How far the lattice swings in as the settings door opens, 0 – 1: 0 only fades it in, 1 starts it side-on |
 | `--tk-light-x` | `1` | `1` light from the right, `-1` from the left |
 | `--tk-shadow` | `0.2` | Shadow strength of the settings door's edge |
 | `--tk-shade` | `0.35` | The inner shadow cast by the lintel and the post, `0`–`1`: higher values push it further in and soften it, with only a slight rise in opacity. The title card, the phone's button card and the door pulls cast shadows from the same values |
