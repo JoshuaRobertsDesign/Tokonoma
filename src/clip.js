@@ -269,7 +269,7 @@ export function initClip(container, video, host = video) {
       if (!blob.size) { note('Save clip', "Couldn't record this video"); return; }
       const done = (file) => {
         download(file, j.name);
-        note('Clip saved', `Downloaded as ${j.name.split('.').pop().toUpperCase()}`);
+        note('Clip saved', `${j.name.split('.').pop().toUpperCase()} file`);
       };
       // recorded WebM carries no length, so players can't show or seek it: write it in
       if (j.type.includes('webm')) fixWebmDuration(blob, performance.now() - j.started, { logger: false }).then(done, () => done(blob));

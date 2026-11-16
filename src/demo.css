@@ -495,7 +495,8 @@ body { position: relative; z-index: 0; }
 .compare img { display: block; width: 100%; height: auto; }
 .compare figcaption { margin-top: 10px; font-size: 12px; line-height: 18px; color: var(--demo-ink-soft); }
 .compare figcaption span { color: var(--demo-ink); }
-@media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+.compare-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 8px; }
+@media (max-width: 640px) { .compare, .compare-3 { grid-template-columns: 1fr; } }
 
 /* ── Showcase loop beside the title ──
    Framed as a recording — a dark mat with its own label bar, a different still —

@@ -363,3 +363,6 @@ Also to do: submission write-up, showcase recording, optional embed on joshuarob
 - Clip card on the picture (bottom-left above the floor, right when the post is left): Save clip + length, × to clear; "Cancel" while recording.
 - Tested (Chromium): I/O, peg drag (no seek), 7s clip saved in ~7s as a 1280×720 file with sound; phone menu flow; axe clean. Not tested on Safari/Firefox.
 - WebM clips get their length written in (fix-webm-duration, MIT), so players can show and seek them.
+- Clip pegs: 44px hit areas on touch / phones; 1px × 4px ticks on the floor's top edge mark both ends. Readouts: "Still saved · PNG file", "Clip saved · MP4 file".
+- Site: "What makes it different" adds "a tool as well as a frame" with three pictures (public/process/feature-magnifier|clip|still.jpg); the lede mentions them.
+- Merged save-clip into main for submission; the `pre-clip` branch keeps the version before clips.

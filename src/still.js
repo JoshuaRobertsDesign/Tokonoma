@@ -30,7 +30,7 @@ export function saveStill(container, video, host = video) {
     canvas.toBlob((blob) => {
       if (!blob) { note('Save still', "Couldn't save"); return; }
       download(blob, name);
-      note('Still saved', 'Downloaded as PNG');
+      note('Still saved', 'PNG file');
     }, 'image/png');
   } catch {
     // a canvas holding another site's picture can't be read back

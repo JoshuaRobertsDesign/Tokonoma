@@ -2734,6 +2734,28 @@ video-player {
 .tk-clip-peg[data-dragging]::before, .tk-clip-peg:hover::before { scale: 1.12; }
 .tk-clip-peg:focus-visible::before { outline: 2px solid var(--tk-matcha); outline-offset: 3px; }
 .tk[data-clip-recording] .tk-clip-peg { pointer-events: none; }
+/* a hairline tick on the floor's top edge marks each end, above the groove */
+.tk-clip::before, .tk-clip::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: var(--tk-clip-a);
+  width: 1px;
+  height: 4px;
+  margin-left: -0.5px;
+  background: var(--tk-walnut);
+  opacity: 0.8;
+}
+.tk-clip::after { left: var(--tk-clip-b); }
+/* touch: bigger pegs to grab (the hit area, not the drawing) */
+@media (pointer: coarse) {
+  .tk-clip-peg { width: 44px; height: 48px; }
+  .tk-clip-peg::before { top: 12px; }
+}
+@container tk-player (max-width: 600px) {
+  .tk .tk-clip-peg { width: 44px; height: 44px; }
+  .tk .tk-clip-peg::before { top: 10px; }
+}
 
 .tk-clipcard {
   position: absolute;
