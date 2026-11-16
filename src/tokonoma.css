@@ -1,0 +1,2610 @@
+/* ──────────────────────────────────────────────────────────────────────────────
+   Tokonoma — a shoji-style skin for Video.js v10
+
+   The video hangs on the back wall of a recessed alcove. When the controls are
+   needed, the view tilts: the wall lifts behind the lintel and the floor rises
+   into view. A washi door slides across the floor as the video plays, and its
+   wooden pull is the seek handle. The post (tokobashira) holds everything else.
+
+   Settings (set any of these on .tk, or on a parent):
+     --tk-light-x          1 = light from the right, -1 = from the left
+     --tk-shadow           strength of the recess shadow (0 – 1)
+     --tk-shade            strength of the inner shadow cast by the lintel and post (0 – 1)
+     --tk-post             size of the post: its width, and the floor's height
+     data-title-layer      under (default): the shade falls across the title card; over: it hangs in front
+     data-chapter-style    kumiko (default), peg, rail or gap: how chapter breaks look in the groove
+     data-volume           starting volume, 0 – 1
+     --tk-frame            width of the frame around the picture
+     data-floor-mode       tilt (default), slide or mask: how the floor comes into view;
+                           fixed keeps it in view
+     data-title-align      none hides the title card
+     --tk-frame            width of the wooden frame
+     --tk-post-w           width of the post
+     --tk-floor-h          height of the floor
+     --tk-rest-brightness  how far the picture dims while paused or ended
+     data-title-align      left (default), center or right
+     data-shade            none removes the post's shade band
+     data-seek             solid (default) lifts the picture; clear lays a see-through floor over it
+     data-theme            hinoki (default), urushi, aizome or sakura: the colour scheme
+     --media-accent-color  focus and active accent (Video.js public property)
+     --media-font-family   typeface (Video.js public property)
+   ────────────────────────────────────────────────────────────────────────────── */
+
+@property --media-slider-fill { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --media-slider-buffer { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --media-slider-pointer { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+@property --tk-progress { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --tk-intro { syntax: '<number>'; inherits: true; initial-value: 1; }
+/* the palette is registered so a change of colour scheme fades rather than snaps */
+@property --tk-sumi { syntax: '<color>'; inherits: true; initial-value: #2b2118; }
+@property --tk-walnut { syntax: '<color>'; inherits: true; initial-value: #5e4f47; }
+@property --tk-hinoki { syntax: '<color>'; inherits: true; initial-value: #c9b69f; }
+@property --tk-washi { syntax: '<color>'; inherits: true; initial-value: #efe6d6; }
+@property --tk-clay { syntax: '<color>'; inherits: true; initial-value: #cfc5b4; }
+@property --tk-ink-soft { syntax: '<color>'; inherits: true; initial-value: #6e5a47; }
+@property --tk-matcha { syntax: '<color>'; inherits: true; initial-value: #a5ba84; }
+@property --tk-matcha-deep { syntax: '<color>'; inherits: true; initial-value: #507024; }
+/* light through paper: the picture's colour, and how much of it the washi takes on */
+@property --tk-light { syntax: '<color>'; inherits: true; initial-value: #efe6d6; }
+@property --tk-light-amt { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+
+video-player {
+  display: block;
+  container: tk-player / inline-size;
+}
+
+.tk {
+  /* palette (from the Framer styles) */
+  --tk-sumi: var(--tokonoma-ink, #2b2118);
+  --tk-walnut: var(--tokonoma-wood, #5e4f47);
+  --tk-hinoki: var(--tokonoma-floor, #c9b69f);
+  --tk-washi: var(--tokonoma-paper, #efe6d6);
+  /* paper: washi, faintly lit by whatever the picture is showing (see light.js) */
+  --tk-paper: color-mix(in oklab, var(--tk-washi), var(--tk-light) var(--tk-light-amt));
+  --tk-washi-door: color-mix(in srgb, var(--tk-paper) 80%, transparent);
+  --tk-washi-card: color-mix(in srgb, var(--tk-paper) 72%, transparent);
+  --tk-clay: var(--tokonoma-wall, #cfc5b4);
+  --tk-ink-soft: var(--tokonoma-ink-soft, #6e5a47);
+  --tk-matcha: var(--tokonoma-accent, var(--media-accent-color, #a5ba84));
+  --tk-matcha-deep: var(--tokonoma-accent-deep, #507024);
+  --tk-font: var(--media-font-family, 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace);
+
+  /* geometry */
+  --tk-frame: 2px;
+  --tk-post: 60px;          /* the post's width, and the floor's height: one size */
+  --tk-post-w: var(--tk-post);
+  --tk-floor-h: var(--tk-post);
+  --tk-edge-w: calc(var(--tk-post) * 1.3125);  /* fixed washi edge piece that holds play */
+  --tk-tools-w: 0px;        /* post-on-floor width in the compact layout */
+  --tk-groove-h: 4px;
+
+  /* light */
+  --tk-light-x: 1;
+  --tk-shadow: 0.2;
+  --tk-shade: 0.35;
+  --tk-shade-dir: 1;        /* the post's side: 1 right, -1 left, 0 none */
+  /* the shade, as values everything casting a shadow shares (all follow --tk-shade) */
+  --tk-shade-off: calc(6px + var(--tk-shade) * 18px);
+  --tk-shade-blur: calc(6px + var(--tk-shade) * 10px);
+  --tk-shade-a: calc(0.16 + var(--tk-shade) * 0.14);
+  --tk-rest-brightness: 0.9;
+  --tk-rest-contrast: 1;
+
+  /* motion */
+  --tk-tilt: 90deg;
+  --tk-drop: calc(var(--tk-floor-h) - var(--tk-frame)); /* how far the wall lifts */
+  --tk-perspective: 1200px;
+  --tk-rise: 600ms;
+  --tk-sink: 600ms;
+  --tk-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --tk-title-shift: 48px;
+
+  --tk-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  padding: var(--tk-frame) var(--tk-post-w) var(--tk-frame) var(--tk-frame);
+  border: 1px solid var(--tk-walnut);
+  background: var(--tk-walnut);
+  color: var(--tk-sumi);
+  font-family: var(--tk-font);
+  font-variant-ligatures: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Colour schemes ─────────────────────────────────────────────────────────────
+   Your own colours: set any of these on the player or a parent (or as attributes
+   on <tokonoma-player>), over whichever scheme you start from:
+     --tokonoma-wood         frame, post, groove, icons on paper
+     --tokonoma-floor        the floor, and the post's icons
+     --tokonoma-paper        the washi: seek door, title card, settings door
+     --tokonoma-ink          text
+     --tokonoma-ink-soft     quiet text: values, notes
+     --tokonoma-wall         the alcove's back wall
+     --tokonoma-accent       accent on wood (focus, a held pull)
+     --tokonoma-accent-deep  accent on paper (chosen items, the seal)
+   Keep wood darker than floor and paper, and ink dark on paper, and every control
+   stays legible. data-theme="custom" starts from hinoki. 
+   data-theme picks a palette; every surface is drawn from these eight tokens, so a
+   scheme only has to name them. The roles hold in every scheme: walnut is the dark
+   wood (frame, post, groove, the ink of icons on paper), hinoki the floor and the
+   post's lettering, washi the paper, sumi the ink, clay the back wall, matcha the
+   accent on wood and matcha-deep the accent on paper. */
+.tk[data-theme='urushi'] {   /* black lacquer, vermilion and gold leaf */
+  --tk-sumi: var(--tokonoma-ink, #160f0c);
+  --tk-walnut: var(--tokonoma-wood, #1a1210);
+  --tk-hinoki: var(--tokonoma-floor, #c8462c);
+  --tk-washi: var(--tokonoma-paper, #f3e9d6);
+  --tk-clay: var(--tokonoma-wall, #2b211d);
+  --tk-ink-soft: var(--tokonoma-ink-soft, #6f4a3a);
+  --tk-matcha: var(--tokonoma-accent, var(--media-accent-color, #e0ae4a));
+  --tk-matcha-deep: var(--tokonoma-accent-deep, #8a5410);
+  /* a denser paper, so the vermilion floor doesn't blush through the door */
+  --tk-washi-door: color-mix(in srgb, var(--tk-paper) 92%, transparent);
+}
+.tk[data-theme='aizome'] {   /* indigo-dyed cotton, bleached white, kihada yellow */
+  --tk-sumi: var(--tokonoma-ink, #0e1730);
+  --tk-walnut: var(--tokonoma-wood, #1f2d50);
+  --tk-hinoki: var(--tokonoma-floor, #8fa4c6);
+  --tk-washi: var(--tokonoma-paper, #f3f6fa);
+  --tk-clay: var(--tokonoma-wall, #c6d0df);
+  --tk-ink-soft: var(--tokonoma-ink-soft, #485a7c);
+  --tk-matcha: var(--tokonoma-accent, var(--media-accent-color, #e8b83e));
+  --tk-matcha-deep: var(--tokonoma-accent-deep, #a04c12);
+}
+.tk[data-theme='sakura'] {   /* plum bark, blossom and new leaves */
+  --tk-sumi: var(--tokonoma-ink, #2a0e1a);
+  --tk-walnut: var(--tokonoma-wood, #4c1d30);
+  --tk-hinoki: var(--tokonoma-floor, #e8aaba);
+  --tk-washi: var(--tokonoma-paper, #fdf2f3);
+  --tk-clay: var(--tokonoma-wall, #efd5dc);
+  --tk-ink-soft: var(--tokonoma-ink-soft, #7c4658);
+  --tk-matcha: var(--tokonoma-accent, var(--media-accent-color, #a8cc84));
+  --tk-matcha-deep: var(--tokonoma-accent-deep, #3d6b28);
+}
+
+.tk:focus-visible {
+  outline: 2px solid var(--tk-matcha);
+  outline-offset: 3px;
+}
+
+.tk *,
+.tk *::before,
+.tk *::after { box-sizing: border-box; }
+
+/* the frame's side jambs, drawn above the floor layers so the tilting floor and
+   its controls always pass behind the frame */
+.tk::before,
+.tk::after {
+  content: '';
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  bottom: 0;
+  width: var(--tk-frame);
+  background: var(--tk-walnut);
+  pointer-events: none;
+}
+.tk::before { left: 0; }
+.tk::after { right: 0; }
+.tk:not([data-post='none']):not([data-post='left']):not([data-post='tuck'])::after { width: 0; } /* the post is the jamb */
+.tk[data-post='left']::before { width: 0; }
+/* the floor's controls, when they sit on it, share the floor's layer */
+.tk[data-post='none'] .tk-post { z-index: 3; }
+@container tk-player (max-width: 600px) {
+  .tk .tk-post { z-index: 3; }
+}
+
+/* ── Alcove ─────────────────────────────────────────────────────────────────── */
+
+.tk-alcove {
+  position: relative;
+  aspect-ratio: var(--tk-aspect, 16 / 9);
+  overflow: hidden;
+  background: var(--tk-noise), var(--tk-clay);
+  background-blend-mode: soft-light, normal;
+}
+
+/* edge highlights on the faces that catch the light */
+.tk-alcove::before,
+.tk-alcove::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+.tk-alcove::before { /* side facing the light */
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--tk-sumi) 0%, var(--tk-hinoki) 21.5%);
+}
+.tk-alcove::after { /* sill */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(270deg, var(--tk-sumi) 0%, var(--tk-hinoki) 20%);
+}
+
+.tk-wall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transition: translate var(--tk-sink) var(--tk-ease-out), filter 400ms var(--tk-ease-out);
+  will-change: translate;
+}
+
+.tk-video,
+.tk-poster,
+.tk-poster img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+}
+/* <mux-video> keeps its <video> in a shadow root; it reads its fit from here */
+.tk-video { --media-object-fit: cover; }
+
+.tk-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: brightness(var(--tk-rest-brightness)) contrast(var(--tk-rest-contrast));
+  backdrop-filter: brightness(var(--tk-rest-brightness)) contrast(var(--tk-rest-contrast));
+  clip-path: inset(0 0 0 100%); /* collapsed against the post */
+  transition: clip-path 400ms var(--tk-ease-out);
+}
+.tk[data-post='left'] .tk-dim { clip-path: inset(0 100% 0 0); }
+
+.tk-poster {
+  transition: opacity 300ms var(--tk-ease-out);
+}
+.tk-poster:not([data-visible]),
+.tk-poster:not([data-loaded]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* the recess (its shadow is drawn by .tk-shade, over the floor too) */
+.tk-recess {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Title card: hangs from the lintel ──────────────────────────────────────── */
+
+.tk-title {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 20px;
+  max-width: calc(100% - 40px);
+  padding: 8px 20px;
+  background: var(--tk-washi-card);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  /* its shadow joins the lintel's: offset away from the post and dropped by
+     the shade's reach, but spread so it still starts at the lintel itself */
+  box-shadow:
+    calc(-1 * var(--tk-shade-dir) * var(--tk-shade-off))
+    calc(var(--tk-shade-off) / 2)
+    var(--tk-shade-blur)
+    calc(var(--tk-shade-off) / 2)
+    rgb(0 0 0 / var(--tk-shade-a));
+  color: var(--tk-sumi);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  translate: 0 calc(-1 * var(--tk-title-shift));
+  transition:
+    translate var(--tk-sink) var(--tk-ease-out),
+    margin var(--tk-mm-dur, 240ms) cubic-bezier(0.33, 1, 0.68, 1),
+    max-width var(--tk-mm-dur, 240ms) cubic-bezier(0.33, 1, 0.68, 1);
+}
+.tk[data-title-align='center'] .tk-title { left: 50%; transform: translateX(-50%); }
+
+/* ── Keyboard readout ───────────────────────────────────────────────────────────
+   A washi slip in the middle of the picture: volume, speed or chapter, with a
+   groove that fills. It wipes in from the left and away to the right; the clip
+   reaches past the slip so its shadow comes and goes with it. */
+.tk-osd {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 12px;
+  width: min(248px, calc(100% - 40px));
+  padding: 14px 18px 16px;
+  background: var(--tk-washi-card);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 calc(var(--tk-shade-off) / 2) var(--tk-shade-blur) calc(var(--tk-shade-off) / -3) rgb(0 0 0 / var(--tk-shade-a));
+  color: var(--tk-sumi);
+  pointer-events: none;
+  visibility: hidden;
+  clip-path: inset(-40px 100% -40px 0);
+}
+.tk-osd[data-state='in'] {
+  visibility: visible;
+  clip-path: inset(-40px);
+  transition: clip-path 420ms var(--tk-ease-out);
+}
+.tk-osd[data-state='out'] {
+  visibility: visible;
+  clip-path: inset(-40px -40px -40px 100%);
+  transition: clip-path 380ms var(--tk-ease-out);
+}
+.tk[data-shade='none'] .tk-osd { box-shadow: none; }
+.tk-osd-ic { display: none; grid-area: 1 / 1; width: 28px; height: 28px; fill: var(--tk-walnut); }
+.tk-osd[data-icon='vol-high'] [data-for='vol-high'],
+.tk-osd[data-icon='vol-low'] [data-for='vol-low'],
+.tk-osd[data-icon='vol-off'] [data-for='vol-off'],
+.tk-osd[data-icon='speed'] [data-for='speed'],
+.tk-osd[data-icon='chapter'] [data-for='chapter'] { display: block; }
+.tk-osd-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tk-osd-label {
+  color: var(--tk-ink-soft);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tk-osd-value {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tk-osd-bar {
+  grid-column: 1 / -1;
+  height: var(--tk-groove-h);
+  background: color-mix(in srgb, var(--tk-walnut) 22%, transparent);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.18);
+}
+.tk-osd-bar i {
+  display: block;
+  height: 100%;
+  width: calc(var(--tk-osd-fill, 0) * 100%);
+  background: var(--tk-walnut);
+  transition: width 260ms var(--tk-ease-out);
+}
+@container tk-player (max-width: 600px) {
+  .tk-osd { width: min(208px, calc(100% - 32px)); padding: 10px 14px 12px; column-gap: 12px; row-gap: 10px; grid-template-columns: 24px minmax(0, 1fr); }
+  .tk-osd-ic { width: 24px; height: 24px; }
+  .tk-osd-value { font-size: 14px; line-height: 18px; }
+}
+.tk[data-title-align='right'] .tk-title { left: auto; right: 20px; }
+.tk[data-title-align='none'] .tk-title { display: none; }
+/* the title hangs in front of the shade instead of under it */
+.tk[data-title-layer='over'] .tk-title { z-index: 6; }
+
+/* when the settings door opens over the title's side, the title rides along with
+   the door's edge (same duration and curve), keeping its inset from the edge */
+.tk[data-tk-mm-open] { --tk-mm-dur: 420ms; }
+.tk[data-tk-mm-open][data-post='left'][data-title-align='left'] .tk-title {
+  margin-left: var(--tk-mm-px, 0px);
+  max-width: calc(100% - 40px - var(--tk-mm-px, 0px));
+}
+.tk[data-tk-mm-open]:is([data-post='right'], [data-post='tuck'])[data-title-align='right'] .tk-title {
+  margin-right: var(--tk-mm-px, 0px);
+  max-width: calc(100% - 40px - var(--tk-mm-px, 0px));
+}
+/* centred: re-centre in the part of the picture the door leaves showing */
+.tk[data-tk-mm-open][data-post='left'][data-title-align='center'] .tk-title {
+  margin-left: calc(var(--tk-mm-px, 0px) / 2);
+  max-width: calc(100% - 40px - var(--tk-mm-px, 0px));
+}
+.tk[data-tk-mm-open]:is([data-post='right'], [data-post='tuck'])[data-title-align='center'] .tk-title {
+  margin-left: calc(var(--tk-mm-px, 0px) / -2);
+  max-width: calc(100% - 40px - var(--tk-mm-px, 0px));
+}
+
+/* moves opposite to the card, so it holds still while the card unmasks it */
+.tk-title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  translate: 0 var(--tk-title-shift);
+  transition: translate var(--tk-sink) var(--tk-ease-out);
+}
+
+/* ── Floor ──────────────────────────────────────────────────────────────────── */
+
+.tk-controls,
+.tk-controls-content {
+  display: contents;
+}
+
+/* The floor box stays put and clips sideways, so the tilting plane never shows
+   gaps at its corners; vertically it stays open for the preview card.
+   Hidden: the plane tilts away about its front edge, darkening as it turns, and
+   the thin seek strip fades in at the end. Up: the reverse. */
+.tk-floor {
+  position: absolute;
+  z-index: 3;
+  left: var(--tk-frame);
+  right: var(--tk-post-w);
+  bottom: 0;
+  height: var(--tk-floor-h);
+  overflow-x: clip;
+  overflow-y: visible;
+  pointer-events: none;
+}
+/* hinged at its top edge, which rides with the video's bottom edge: no gap, ever */
+.tk-floor-plane {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 0%;
+  transform: translateY(var(--tk-floor-h)) perspective(var(--tk-perspective)) rotateX(var(--tk-tilt));
+  filter: brightness(0.8);
+  opacity: 0.8;
+  pointer-events: none;
+  transition:
+    transform var(--tk-sink) var(--tk-ease-out),
+    filter var(--tk-sink) var(--tk-ease-out),
+    opacity var(--tk-sink) var(--tk-ease-out);
+}
+
+/* wider than the box, so the narrowing far edge still reaches the frame */
+.tk-floor-surface {
+  position: absolute;
+  inset: 0 -72px;
+  overflow: hidden;
+  background: var(--tk-hinoki);
+}
+
+/* the thin seek strip: shown while the floor is down, frame-high */
+/* also hinged at its top edge, on the video's bottom edge */
+.tk-mini {
+  position: absolute;
+  z-index: 4; /* above the main floor */
+  left: var(--tk-frame);
+  right: var(--tk-post-w);
+  bottom: 0;
+  height: max(var(--tk-frame), 3px); /* still a sliver of progress with no frame */
+  overflow: hidden;
+  background: var(--tk-hinoki);
+  pointer-events: none;
+  transform-origin: 50% 0%;
+  transform: none;
+  filter: brightness(0.8);
+  opacity: 1;
+  transition:
+    transform var(--tk-sink) var(--tk-ease-out),
+    filter var(--tk-sink) var(--tk-ease-out),
+    opacity var(--tk-sink) var(--tk-ease-out);
+}
+.tk-mini-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--tk-edge-w) + (100% - var(--tk-edge-w) - var(--tk-tools-w)) * max(var(--tk-progress, 0), var(--tk-intro)));
+  background: var(--tk-washi-door);
+  border-right: 2px solid var(--tk-walnut);
+}
+/* One inner shadow, cast by the lintel above and the post at its side: it lies
+   over the picture and the floor alike. Its x offset points away from the post
+   (no post, no sideways offset). --tk-shade (0 – 1) deepens it mostly by
+   pushing the shadow further in and softening it; its opacity rises only a
+   little. With the floor up it settles 4px deeper. */
+.tk-shade {
+  position: absolute;
+  z-index: 5;
+  top: var(--tk-frame);
+  bottom: 0;
+  left: var(--tk-frame);
+  right: var(--tk-post-w);
+  pointer-events: none;
+  /* its own layer, always: Chrome otherwise re-draws it when the floor's
+     animation ends, and the redraw can land a few pixels off */
+  will-change: transform;
+}
+/* Two drawings of the shadow — resting, and 4px deeper for the floor-up view —
+   cross-faded. Fading is composited, so nothing is re-drawn mid-move and
+   nothing jumps when the move ends (animating box-shadow itself did). */
+.tk-shade::before,
+.tk-shade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset
+    calc(-1 * var(--tk-shade-dir) * var(--tk-shade-reach))
+    var(--tk-shade-reach)
+    var(--tk-shade-blur)
+    0
+    rgb(0 0 0 / var(--tk-shade-a));
+  transition: opacity var(--tk-sink) var(--tk-ease-out);
+}
+.tk-shade::before { --tk-shade-reach: var(--tk-shade-off); opacity: 1; }
+.tk-shade::after { --tk-shade-reach: calc(var(--tk-shade-off) + 4px); opacity: 0; }
+.tk[data-post='left'] { --tk-shade-dir: -1; }
+.tk[data-post='none'] { --tk-shade-dir: 0; }
+.tk[data-shade='none'] .tk-shade { display: none; }
+/* …and with it the lit edge on the opposite side of the alcove */
+.tk[data-shade='none'] .tk-alcove::before { display: none; }
+/* …and no shadow falls on the picture at all: the recess, the title card, the
+   preview card and the settings door's edge all go flat */
+.tk[data-shade='none'] { --tk-shadow: 0; }
+.tk[data-shade='none'] .tk-title,
+.tk[data-shade='none'] .tk-preview-shadow { box-shadow: none !important; }
+.tk[data-shade='none'] .tk-mm-cast { display: none; }
+/* floor up: the shadow settles a little deeper */
+.tk[data-floor-up] .tk-shade::before { opacity: 0; transition-duration: var(--tk-rise); }
+.tk[data-floor-up] .tk-shade::after { opacity: 1; transition-duration: var(--tk-rise); }
+/* the groove continues under the fixed edge piece */
+.tk-floor-surface::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: calc(72px + var(--tk-edge-w) + 4px);
+  top: calc(50% - var(--tk-groove-h) / 2);
+  height: var(--tk-groove-h);
+  background: var(--tk-walnut);
+  box-shadow: inset 0 2px 1px rgb(0 0 0 / 0.4);
+}
+/* shadow cast by the post: falls across everything on the floor. It arrives
+   as the floor settles into the post's shade, and leaves first as it tilts away. */
+
+
+/* ── Seek: the groove, the washi door and its pull ─────────────────────────── */
+
+.tk-seek {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--tk-edge-w);
+  right: var(--tk-tools-w);
+  display: block;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+  /* a click glides the door to its new place; a drag follows the pull exactly */
+  transition: --media-slider-fill 260ms var(--tk-ease-out), --media-slider-buffer 260ms var(--tk-ease-out);
+}
+/* where the door's edge is drawn: the playback position, or shut during the intro */
+.tk-seek {
+  --tk-at: max(var(--media-slider-fill, 0%), calc(var(--tk-intro) * 100%));
+}
+.tk[data-intro-done] { --tk-intro: 0; }
+.tk-seek[data-dragging]:not([data-tk-glide]) {
+  transition-duration: 0s, 260ms;
+}
+.tk {
+  --tk-intro: 1;
+  transition:
+    --tk-progress 260ms var(--tk-ease-out), --tk-intro 1400ms var(--tk-ease-out),
+    --tk-sumi 700ms var(--tk-ease-out), --tk-walnut 700ms var(--tk-ease-out),
+    --tk-hinoki 700ms var(--tk-ease-out), --tk-washi 700ms var(--tk-ease-out),
+    --tk-clay 700ms var(--tk-ease-out), --tk-ink-soft 700ms var(--tk-ease-out),
+    --tk-matcha 700ms var(--tk-ease-out), --tk-matcha-deep 700ms var(--tk-ease-out),
+    --tk-light 1400ms var(--tk-ease-out), --tk-light-amt 900ms var(--tk-ease-out);
+}
+
+.tk-chapters {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.tk-chapter {
+  --tk-gap-start: 0px;
+  --tk-gap-end: 0px;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* each chapter's length of groove */
+.tk-groove {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--tk-groove-h) / 2);
+  height: var(--tk-groove-h);
+  display: block;
+  background: var(--tk-walnut);
+  box-shadow: inset 0 2px 1px rgb(0 0 0 / 0.4);
+  clip-path: inset(
+    0
+    calc(100% - var(--media-slider-chapter-end, 100%) + var(--tk-gap-end))
+    0
+    calc(var(--media-slider-chapter-start, 0%) + var(--tk-gap-start))
+  );
+}
+/* not yet loaded: the groove looks dusted with washi */
+.tk-groove::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--media-slider-buffer, 0%);
+  right: 0;
+  background: var(--tk-washi);
+  mix-blend-mode: overlay;
+}
+
+/* the kumiko joint: a tilted frame in the floor's own colour cuts the groove,
+   and a groove-sized key inside it, in the groove's colour, bridges the cut */
+.tk-chapter:not(:first-of-type)::before,
+.tk-chapter:not(:first-of-type)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: var(--media-slider-chapter-start);
+  width: 8px;
+  translate: -50% -50%;
+  rotate: -45deg;
+}
+.tk-chapter:not(:first-of-type)::before {
+  z-index: 1;
+  height: var(--tk-floor-h);
+  background: var(--tk-hinoki);
+}
+.tk-chapter:not(:first-of-type)::after {
+  z-index: 2;
+  height: var(--tk-groove-h);
+  background: var(--tk-walnut);
+}
+
+/* Other chapter joints (data-chapter-style):
+   peg  — a round wooden dowel set into the groove
+   rail — a thin kumiko rail crossing the groove
+   gap  — the groove simply parts */
+.tk[data-chapter-style='peg'] .tk-chapter:not(:first-of-type)::before,
+.tk[data-chapter-style='rail'] .tk-chapter:not(:first-of-type)::before,
+.tk[data-chapter-style='gap'] .tk-chapter:not(:first-of-type)::before,
+.tk[data-chapter-style='gap'] .tk-chapter:not(:first-of-type)::after { display: none; }
+.tk[data-chapter-style='peg'] .tk-chapter:not(:first-of-type)::after {
+  width: 8px;
+  height: 8px;
+  rotate: none;
+  border-radius: 50%;
+  background: var(--tk-hinoki);
+  box-shadow: 0 0 0 2px var(--tk-walnut), inset 1px -1px 1px rgb(0 0 0 / 0.3);
+}
+.tk[data-chapter-style='rail'] .tk-chapter:not(:first-of-type)::after {
+  width: 2px;
+  height: 16px;
+  rotate: none;
+  border-radius: 1px;
+  background: var(--tk-walnut);
+}
+.tk[data-chapter-style='gap'] .tk-chapter:not(:first-of-type) { --tk-gap-start: 3px; }
+.tk[data-chapter-style='gap'] .tk-chapter:not(:last-of-type) { --tk-gap-end: 3px; }
+
+/* the washi door; its fixed edge piece holds play */
+.tk-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * var(--tk-edge-w) - 72px);
+  width: calc(72px + var(--tk-edge-w) + var(--tk-at));
+  background: var(--tk-washi-door);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border-right: 2px solid var(--tk-walnut);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* the hikite: a recessed wooden door pull */
+.tk-pull {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--tk-at) - 1px); /* centre of the door's 2px edge */
+  /* 28px wide to the touch, 12px to the eye: the wood is drawn by ::before.
+     It sits above the play piece, so at 0:00 its whole hit area stays reachable. */
+  z-index: 5;
+  width: 28px;
+  height: calc(var(--tk-floor-h) * 0.625);
+  translate: -50% -50%;
+  display: block;
+  outline: none;
+  transition: opacity 300ms var(--tk-ease-out);
+}
+.tk-pull::before,
+.tk-vol-pull::before {
+  content: '';
+  position: absolute;
+  inset: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--tk-hinoki) 70%, transparent);
+  border-radius: 2.5px;
+  background: var(--tk-walnut);
+  box-shadow:
+    calc(-1 * var(--tk-shade-dir) * (1px + var(--tk-shade) * 3px))
+    calc(2px + var(--tk-shade) * 4px)
+    calc(1px + var(--tk-shade) * 2px)
+    0
+    rgb(0 0 0 / calc(0.18 + var(--tk-shade) * 0.14));
+  transition: box-shadow 120ms var(--tk-ease-out);
+}
+.tk-pull-notch {
+  position: absolute;
+  inset: 4px 9px;
+  border-radius: 2.5px;
+  background: var(--tk-hinoki);
+  box-shadow: inset calc(-2px * var(--tk-light-x)) 2px 1px 0 rgb(0 0 0 / 0.33);
+  transition: background-color 120ms var(--tk-ease-out);
+}
+.tk-seek[data-dragging] .tk-pull { translate: -50% calc(-50% + 1px); }
+.tk-seek[data-dragging] .tk-pull::before {
+  /* pressed in: the shadow tucks closer */
+  box-shadow:
+    calc(-0.5 * var(--tk-shade-dir) * (1px + var(--tk-shade) * 3px))
+    calc(1px + var(--tk-shade) * 2px)
+    1px
+    0
+    rgb(0 0 0 / calc(0.18 + var(--tk-shade) * 0.14));
+}
+.tk-seek[data-dragging] .tk-pull-notch,
+.tk-seek:active .tk-pull-notch {
+  background: var(--tk-matcha);
+}
+.tk-pull:focus-visible::before,
+.tk-seek:focus-visible .tk-pull::before {
+  outline: 2px solid var(--tk-matcha-deep);
+  outline-offset: 3px;
+}
+
+/* nothing to seek until the length is known */
+.tk:not([data-duration-known]) .tk-pull { opacity: 0; }
+
+/* the readout travels beside the pull, on the washi side */
+.tk-time {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: var(--tk-at);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 12px;
+  translate: calc(-100% - 16px) 0;
+  pointer-events: none;
+  font-size: 13px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.tk-time-current { font-weight: 400; }
+.tk-time-duration { font-weight: 300; }
+.tk:not([data-intro-done]) .tk-time { opacity: 0; }
+.tk-time { transition: opacity 400ms var(--tk-ease-out) 900ms; }
+.tk[data-time-flip] .tk-time {
+  translate: 16px 0;
+  align-items: flex-start;
+}
+/* Clear seek: flipped past the pull, the readout would sit on the bare picture,
+   so it gets a frosted washi panel of its own, the full height of the door */
+.tk[data-seek='clear'] .tk-time {
+  transition: opacity 400ms var(--tk-ease-out) 900ms, background-color 200ms var(--tk-ease-out), padding 200ms var(--tk-ease-out);
+}
+.tk[data-seek='clear'][data-time-flip] .tk-time {
+  top: 0;
+  bottom: 0;
+  padding: 0 12px;
+  translate: 12px 0;
+  background: var(--tk-washi-frost);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 2px 0 0 var(--tk-walnut);
+}
+
+/* loading: a short length of washi eases along the groove */
+.tk-glide-lane {
+  position: absolute;
+  z-index: 1;
+  top: calc(50% - var(--tk-groove-h) / 2);
+  height: var(--tk-groove-h);
+  left: calc(var(--media-slider-fill, 0%) + 8px);
+  right: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms var(--tk-ease-out);
+}
+.tk-glide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 48px;
+  background: var(--tk-washi);
+  animation: tk-glide 1.6s var(--tk-ease-out) infinite;
+}
+.tk[data-loading] .tk-glide-lane { opacity: 1; }
+.tk:not([data-intro-done]) .tk-glide-lane { z-index: 2; }
+.tk:not([data-intro-done]) .tk-glide { background: var(--tk-walnut); opacity: 0.45; }
+
+@keyframes tk-glide {
+  from { left: -48px; }
+  to { left: 100%; }
+}
+
+/* ── Preview card ───────────────────────────────────────────────────────────── */
+/* Video.js positions the preview (centred on the pointer, clamped to the track).
+   The whole card unmasks as one piece: its mask slides up while the contents
+   slide down by the same amount, so they hold still and are wiped in. */
+
+.tk-preview {
+  position: absolute;
+  z-index: 6;
+  bottom: 100%;
+  width: 140px;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 240ms;
+}
+.tk-seek[data-pointing] .tk-preview,
+.tk-seek[data-dragging] .tk-preview {
+  visibility: visible;
+  transition-delay: 0s;
+}
+/* with the settings door open, the card stops flush against the door's edge
+   instead of sliding behind it (the hover line still follows the pointer).
+   --tk-pv-lo / --tk-pv-hi are how much of the track the door overhangs. */
+.tk { --tk-pv-half: 70px; }
+.tk[data-tk-mm-open] .tk-preview {
+  left: min(
+    max(var(--tk-pv-lo, 0px), calc(var(--media-slider-pointer, 0%) - var(--tk-pv-half))),
+    calc(100% - 2 * var(--tk-pv-half) - var(--tk-pv-hi, 0px))
+  ) !important;
+}
+
+.tk-preview-mask {
+  overflow: hidden;
+  translate: 0 100%;
+  transition: translate 240ms var(--tk-ease-out);
+}
+.tk-preview-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  translate: 0 -100%;
+  transition: translate 240ms var(--tk-ease-out);
+}
+.tk-seek[data-pointing] .tk-preview-mask,
+.tk-seek[data-pointing] .tk-preview-body,
+.tk-seek[data-dragging] .tk-preview-mask,
+.tk-seek[data-dragging] .tk-preview-body {
+  translate: 0 0;
+  transition: translate 420ms var(--tk-ease-out);
+}
+
+/* the card's shadow sits outside the mask, and settles in after the wipe */
+.tk-preview-shadow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(74.25px + 8px);
+  box-shadow: calc(-8px * var(--tk-light-x)) 6px 4px 0 rgb(0 0 0 / 0);
+  transition: box-shadow 200ms var(--tk-ease-out);
+}
+.tk-seek[data-pointing] .tk-preview-shadow,
+.tk-seek[data-dragging] .tk-preview-shadow {
+  box-shadow: calc(-8px * var(--tk-light-x)) 6px 4px 0 rgb(0 0 0 / 0.2);
+  transition: box-shadow 360ms var(--tk-ease-out) 160ms;
+}
+
+.tk-preview-label {
+  display: flex;
+  flex-direction: column;
+  width: 132px;
+  background: var(--tk-paper);
+  text-align: center;
+}
+.tk-preview-chapter-wrap {
+  height: var(--tk-chapter-h, auto);
+  overflow: hidden;
+  transition: height 260ms var(--tk-ease-out);
+}
+.tk-preview-chapter {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: calc(2 * 1.3em); /* never a sliver of a third line */
+  margin: 7px 8px;
+  padding: 0;
+  color: var(--tk-ink-soft);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tk-preview-chapter:empty { display: none; }
+.tk-preview-chapter-source,
+.tk-preview-value { display: none; }
+
+.tk-preview-time {
+  display: block;
+  padding: 6px 8px;
+  border-top: 1px solid var(--tk-hinoki);
+  color: var(--tk-sumi);
+  font-size: 13px;
+  line-height: 16px;
+}
+.tk-preview-label[data-no-chapter] .tk-preview-time { border-top: 0; }
+/* while dragging, the floor readout already shows the time */
+.tk-seek[data-dragging] .tk-preview-time { display: none; }
+.tk-seek[data-dragging] .tk-preview-label[data-no-chapter] { display: none; }
+
+.tk-preview-card {
+  width: 140px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--tk-washi) 60%, transparent);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+.tk-preview-thumb {
+  display: block;
+  width: 132px;
+  height: 74.25px;
+  min-width: 132px;
+  max-width: 132px;
+  min-height: 74.25px;
+  max-height: 74.25px;
+  overflow: hidden;
+  border: 1px solid var(--tk-walnut);
+  background: var(--tk-sumi);
+}
+.tk-preview-thumb img { display: block; }
+
+/* where a click lands: follows the pointer, even while the card is held at an
+   edge; from the floor's top down to the groove's lower edge */
+.tk-hover-line {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: var(--media-slider-pointer, 0%);
+  width: 1px;
+  height: calc(50% + var(--tk-groove-h) / 2);
+  margin-left: -0.5px;
+  background: var(--tk-washi);
+  opacity: 0.9;
+  pointer-events: none;
+  transform-origin: top;
+  scale: 1 0;
+  transition: scale 160ms var(--tk-ease-out), background-color 160ms var(--tk-ease-out);
+}
+.tk-seek[data-pointing]:not([data-dragging]) .tk-hover-line {
+  scale: 1 1;
+  transition: scale 360ms var(--tk-ease-out) 160ms, background-color 160ms var(--tk-ease-out);
+}
+/* over the washi, a washi line would vanish: draw it in walnut */
+.tk-seek[data-tk-over-door] .tk-hover-line { background: var(--tk-walnut); }
+
+/* ── Buttons ────────────────────────────────────────────────────────────────── */
+
+.tk-btn {
+  appearance: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 120ms var(--tk-ease-out), color 120ms var(--tk-ease-out);
+}
+.tk-btn > .tk-icon {
+  grid-area: 1 / 1;
+  transition: translate 80ms var(--tk-ease-out);
+}
+.tk-btn:active > .tk-icon { translate: 0 1px; }
+
+.tk-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+  pointer-events: none;
+}
+
+/* more: three dots that stretch into three lines while the settings door is open */
+.tk-more-icon {
+  --tk-dot: 2.5px;       /* Phosphor Dots Three Vertical (Light) at 32px */
+  --tk-dot-gap: 8.5px;
+  --tk-line-w: 9.5px;
+  --tk-line-h: 2px;
+  position: relative;
+}
+.tk-more-icon > span {
+  --y: 0px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--tk-dot);
+  height: var(--tk-dot);
+  border-radius: 999px;
+  background: currentColor;
+  translate: -50% calc(-50% + var(--y));
+  transition:
+    width 320ms var(--tk-ease-out),
+    height 200ms var(--tk-ease-out);
+}
+.tk-more-icon > span:nth-child(1) { --y: calc(-1 * var(--tk-dot-gap)); }
+.tk-more-icon > span:nth-child(3) { --y: var(--tk-dot-gap); }
+.tk-more[aria-expanded='true'] .tk-more-icon > span { width: var(--tk-line-w); height: var(--tk-line-h); }
+
+/* play, on the fixed washi edge piece */
+.tk-play {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  top: 0;
+  width: var(--tk-edge-w);
+  height: 100%;
+  color: var(--tk-walnut);
+}
+.tk-play .tk-icon { width: calc(var(--tk-floor-h) * 0.625); height: calc(var(--tk-floor-h) * 0.625); }
+.tk-play .tk-icon-replay { width: 30px; height: 30px; }
+.tk-play:hover { color: var(--tk-sumi); }
+.tk-play:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 8px 10px;
+  outline: 2px solid var(--tk-matcha-deep);
+  outline-offset: 0;
+}
+.tk-play .tk-icon-play,
+.tk-play .tk-icon-pause,
+.tk-play .tk-icon-replay { display: none; }
+.tk-play[data-paused]:not([data-ended]) .tk-icon-play { display: block; }
+.tk-play:not([data-paused]):not([data-ended]) .tk-icon-pause { display: block; }
+.tk-play[data-ended] .tk-icon-replay { display: block; }
+
+/* ── Post ───────────────────────────────────────────────────────────────────── */
+
+.tk-post {
+  position: absolute;
+  z-index: 7;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--tk-post-w);
+  display: flex;
+  flex-direction: column;
+  background: var(--tk-noise), var(--tk-walnut);
+  background-blend-mode: soft-light, normal;
+  color: var(--tk-hinoki);
+}
+
+
+.tk-cell {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  min-height: 44px;
+  border-bottom: 1px solid var(--tk-sumi);
+}
+/* no line under the last cell: the post runs straight into the frame */
+.tk-post .tk-cell:last-child { border-bottom: 0; }
+
+.tk-post .tk-btn {
+  width: 100%;
+  height: 100%;
+}
+.tk-post .tk-btn:hover,
+.tk-post .tk-btn[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--tk-washi) 6%, transparent);
+  color: var(--tk-washi);
+}
+.tk-post .tk-btn:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  outline: 2px solid var(--tk-matcha);
+}
+
+.tk-mute .tk-icon,
+.tk-vol-idle .tk-icon { display: none; }
+.tk-mute:not([data-muted]):not([data-volume-level='low']):not([data-volume-level='off']) .tk-icon-vol-high,
+.tk-mute:not([data-muted])[data-volume-level='low'] .tk-icon-vol-low,
+.tk-mute[data-muted] .tk-icon-vol-off,
+.tk-mute[data-volume-level='off'] .tk-icon-vol-off,
+.tk-cell-volume:not([data-tk-level]) .tk-vol-idle .tk-icon-vol-high,
+.tk-cell-volume[data-tk-level='high'] .tk-vol-idle .tk-icon-vol-high,
+.tk-cell-volume[data-tk-level='low'] .tk-vol-idle .tk-icon-vol-low,
+.tk-cell-volume[data-tk-level='off'] .tk-vol-idle .tk-icon-vol-off { display: block; }
+
+.tk-fullscreen .tk-icon-fs-exit,
+.tk-fullscreen[data-fullscreen] .tk-fs-corners { display: none; }
+.tk-fullscreen[data-fullscreen] .tk-icon-fs-exit { display: block; }
+
+/* Fullscreen hover. One progress value (--tk-fs-p, 0 → 1) drives it.
+   Enter: the four corners grow as a square first (width leads, height follows
+   at p³), the arms stretch mid-move, then they settle 4px in from the cell's
+   corners at their resting length. Exit: the icon draws inward to 0.78. */
+@property --tk-fs-p { syntax: '<number>'; inherits: true; initial-value: 0; }
+.tk-fullscreen {
+  --tk-fs-p: 0;
+  transition: background-color 120ms var(--tk-ease-out), color 120ms var(--tk-ease-out),
+    --tk-fs-p 300ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+@media (hover: hover) {
+  .tk-fullscreen:hover {
+    --tk-fs-p: 1;
+    transition: background-color 120ms var(--tk-ease-out), color 120ms var(--tk-ease-out),
+      --tk-fs-p 300ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+}
+.tk-fs-corners {
+  /* geometry of Phosphor Corners Out (Light) at 32px: outer corner 10.75px
+     from centre, arms 5.75px, stroke 1.5px */
+  --tk-fs-rest: 10.75px;
+  --tk-fs-arm-rest: 5.75px;
+  --tk-fs-inset: 4px;
+  --tk-fs-dx: calc(var(--tk-fs-rest) + (50cqw - var(--tk-fs-inset) - var(--tk-fs-rest)) * var(--tk-fs-p));
+  --tk-fs-dy: calc(var(--tk-fs-rest) + (50cqh - var(--tk-fs-inset) - var(--tk-fs-rest)) * var(--tk-fs-p) * var(--tk-fs-p) * var(--tk-fs-p));
+  --tk-fs-arm: calc(var(--tk-fs-arm-rest) * (1 + 0.8 * sin(var(--tk-fs-p) * 180deg)));
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+}
+.tk-fs-c {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--tk-fs-arm);
+  height: var(--tk-fs-arm);
+  border: 0 solid currentColor;
+}
+.tk-fs-tl { border-width: 1.5px 0 0 1.5px; border-top-left-radius: 1px;
+  translate: calc(-1 * var(--tk-fs-dx)) calc(-1 * var(--tk-fs-dy)); }
+.tk-fs-tr { border-width: 1.5px 1.5px 0 0; border-top-right-radius: 1px;
+  translate: calc(var(--tk-fs-dx) - var(--tk-fs-arm)) calc(-1 * var(--tk-fs-dy)); }
+.tk-fs-bl { border-width: 0 0 1.5px 1.5px; border-bottom-left-radius: 1px;
+  translate: calc(-1 * var(--tk-fs-dx)) calc(var(--tk-fs-dy) - var(--tk-fs-arm)); }
+.tk-fs-br { border-width: 0 1.5px 1.5px 0; border-bottom-right-radius: 1px;
+  translate: calc(var(--tk-fs-dx) - var(--tk-fs-arm)) calc(var(--tk-fs-dy) - var(--tk-fs-arm)); }
+.tk-fullscreen .tk-icon-fs-exit { scale: calc(1 - 0.22 * var(--tk-fs-p)); }
+.tk-fullscreen:active .tk-fs-corners { translate: 0 1px; }
+.tk-fullscreen[data-hidden] { pointer-events: none; }
+
+
+/* ── Volume: a vertical washi door inside the post's cell ───────────────────── */
+/* At rest the cell shows its icon. On hover or focus the icon fades and the
+   slider wipes in from the bottom (mask up, contents down). The washi rises
+   from a fixed edge piece holding the mute button, like the seek door. */
+
+@property --tk-vol-n { syntax: '<number>'; inherits: true; initial-value: 1; }
+
+.tk-cell-volume {
+  --tk-vol-edge: calc(var(--tk-post) * 0.8125);
+  /* 0–1 level, set from the media. The track starts a frame's width below
+     the cell top, so at 100% the washi stops there with the pull centred on
+     its edge. */
+  --tk-vol-at: calc(var(--tk-vol-n) * 100%);
+  overflow: hidden;
+  transition: --tk-vol-n 160ms var(--tk-ease-out);
+}
+.tk-cell-volume[data-tk-dragging] { transition: none; }
+.tk-vol-idle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  /* wiped away by the slider's rising edge: same duration and curve as the mask */
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 240ms var(--tk-ease-out);
+}
+.tk-vol-idle .tk-icon { grid-area: 1 / 1; }
+.tk-cell-volume:is(:hover, :has(:focus-visible), [data-tk-active]) .tk-vol-idle {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 420ms var(--tk-ease-out);
+}
+
+.tk-vol-mask {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  translate: 0 100%;
+  transition: translate 240ms var(--tk-ease-out);
+}
+.tk-vol-body {
+  position: absolute;
+  inset: 0;
+  translate: 0 -100%;
+  transition: translate 240ms var(--tk-ease-out);
+}
+.tk-cell-volume:is(:hover, :has(:focus-visible), [data-tk-active]) .tk-vol-mask,
+.tk-cell-volume:is(:hover, :has(:focus-visible), [data-tk-active]) .tk-vol-body {
+  translate: 0 0;
+  transition: translate 420ms var(--tk-ease-out);
+}
+
+.tk-vol {
+  position: absolute;
+  top: var(--tk-frame);
+  left: 0;
+  right: 0;
+  bottom: var(--tk-vol-edge);
+  display: block;
+  cursor: pointer;
+  touch-action: none;
+  outline: none;
+}
+.tk-vol-groove {
+  position: absolute;
+  top: 0; /* starts level with the border, like the washi at 100% */
+  bottom: calc(-1 * var(--tk-vol-edge));
+  left: calc(50% - var(--tk-groove-h) / 2);
+  width: var(--tk-groove-h);
+  background: color-mix(in srgb, var(--tk-sumi) 70%, transparent);
+  box-shadow: inset 2px 0 1px rgb(0 0 0 / 0.4);
+}
+.tk-vol-door {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--tk-vol-edge));
+  height: calc(var(--tk-vol-edge) + var(--tk-vol-at));
+  background: var(--tk-washi-door);
+}
+
+.tk-vol-pull {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: var(--tk-vol-at);
+  /* 28px tall to the touch, 12px to the eye */
+  width: 40px;
+  height: 28px;
+  translate: -50% 50%;
+  display: block;
+  outline: none;
+}
+.tk-vol-pull::before { inset: 8px 0; }
+.tk-vol-pull .tk-pull-notch { inset: 10px 4px; }
+.tk-vol[data-dragging] .tk-vol-pull .tk-pull-notch { background: var(--tk-matcha); }
+.tk-vol-pull:focus-visible::before {
+  outline: 2px solid var(--tk-matcha);
+  outline-offset: 3px;
+}
+
+/* the level, just under the pull on the washi side */
+.tk-vol-value {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--tk-vol-at);
+  translate: 0 calc(100% + 12px);
+  color: var(--tk-sumi);
+  font-size: 13px;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 160ms var(--tk-ease-out);
+}
+/* below 10% (or muted) the label would sit on the mute icon, so it hides */
+.tk-cell-volume[data-tk-quiet] .tk-vol-value { opacity: 0; }
+
+/* the fixed edge piece: the mute button */
+.tk-post .tk-cell-volume .tk-mute {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--tk-vol-edge);
+  color: var(--tk-walnut);
+}
+.tk-post .tk-cell-volume .tk-mute .tk-icon { width: 26px; height: 26px; }
+.tk-post .tk-cell-volume .tk-mute:hover { background: color-mix(in srgb, var(--tk-walnut) 8%, transparent); color: var(--tk-sumi); }
+.tk-post .tk-cell-volume .tk-mute:focus-visible::after { outline-color: var(--tk-matcha-deep); inset: 6px; }
+
+/* ── Settings: a washi door that slides out from behind the post ───────────── */
+/* Unmasking, like the title card: the door's content holds still while its
+   leading edge (a walnut stile) sweeps out from the post. --tk-mm-o drives the
+   door (0 shut → 1 open). Submenus are an inner door: --tk-mm-sub sweeps a
+   second stile across, revealing the submenu over the root view. */
+
+@property --tk-mm-o { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --tk-mm-sub { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+.tk-mm {
+  --tk-mm-w: 288px;
+  --tk-mm-o: 0;
+  --tk-mm-sub: 0;
+  --tk-mm-ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --tk-mm-fill: color-mix(in srgb, var(--tk-walnut) 10%, transparent);
+  --tk-mm-line: color-mix(in srgb, var(--tk-walnut) 25%, transparent);
+  position: absolute;
+  z-index: 6;
+  top: var(--tk-frame);
+  bottom: var(--tk-floor-h);
+  right: var(--tk-post-w);
+  width: min(var(--tk-mm-w), calc(100% - var(--tk-post-w) - 2 * var(--tk-frame)));
+  color: var(--tk-sumi);
+  font: 13px/16px var(--tk-font);
+  pointer-events: none;
+  transition:
+    --tk-mm-o 240ms var(--tk-mm-ease),
+    --tk-mm-sub 360ms var(--tk-mm-ease);
+}
+.tk-mm[data-open] {
+  --tk-mm-o: 1;
+  pointer-events: auto;
+  transition:
+    --tk-mm-o 420ms var(--tk-mm-ease),
+    --tk-mm-sub 360ms var(--tk-mm-ease);
+}
+.tk-mm[data-sub] { --tk-mm-sub: 1; }
+.tk-mm[data-shut] { visibility: hidden; }
+
+/* the door, revealed from the post side */
+.tk-mm-body {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--tk-paper) 78%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  clip-path: inset(0 0 0 calc((1 - var(--tk-mm-o)) * 100%));
+}
+/* the door's leading stile, riding the reveal edge */
+.tk-mm-stile {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: calc((1 - var(--tk-mm-o)) * 100%);
+  width: 3px;
+  background: var(--tk-walnut);
+  pointer-events: none;
+}
+/* the shadow the door casts on the wall, just ahead of the stile */
+.tk-mm-cast {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc((1 - var(--tk-mm-o)) * 100% - 14px);
+  width: 14px;
+  background: linear-gradient(to left, rgb(0 0 0 / var(--tk-shadow)), rgb(0 0 0 / 0));
+  /* no mix-blend-mode here: a blended sibling makes Chrome isolate the door,
+     and the door's backdrop blur then has nothing behind it to blur (black
+     multiplied looks the same as black laid over, so nothing is lost) */
+  opacity: min(1, var(--tk-mm-o) * 20);
+  pointer-events: none;
+}
+
+/* views: the root, and an inner door for each submenu */
+.tk-mm-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tk-mm-root { clip-path: inset(0 calc(var(--tk-mm-sub) * 100%) 0 0); }
+.tk-mm-sub { display: none; clip-path: inset(0 0 0 calc((1 - var(--tk-mm-sub)) * 100%)); }
+.tk-mm-sub[data-shown] { display: flex; }
+.tk-mm-stile-sub {
+  left: calc((1 - var(--tk-mm-sub)) * 100%);
+  opacity: clamp(0, min(var(--tk-mm-sub), 1 - var(--tk-mm-sub)) * 40, 1);
+}
+
+.tk-mm-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--tk-walnut) 40%, transparent) transparent;
+}
+
+/* header (root) and back button (submenus) */
+.tk-mm-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--tk-mm-line) !important;
+  color: var(--tk-ink-soft);
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+}
+.tk-mm-back { width: 100%; color: var(--tk-sumi) !important; padding-left: 12px; }
+.tk-mm-back-ic { width: 18px; height: 18px; }
+
+.tk-mm-group {
+  padding: 14px 16px 6px;
+  color: var(--tk-ink-soft);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tk-mm-rule { height: 1px; margin: 8px 16px 0; background: var(--tk-mm-line); }
+
+/* everything clickable in the door */
+.tk-mm button {
+  position: relative;
+  isolation: isolate;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+.tk-mm button:focus-visible { outline: 2px solid var(--tk-matcha-deep); outline-offset: -4px; }
+/* hover: rows fill from the post's side, toggles from the bottom */
+.tk-mm button::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--tk-mm-fill);
+  scale: 0 1;
+  transform-origin: 100% 50%;
+  transition: scale 300ms var(--tk-ease-out);
+}
+.tk-mm :is(.tk-mm-tog, .tk-mm-chip)::before { scale: 1 0; transform-origin: 50% 100%; }
+@media (hover: hover) {
+  .tk-mm button:hover::before { scale: 1 1; }
+}
+/* a toggle that's on, and the selected row in a list, keep their fill */
+.tk-mm button[aria-pressed='true']::before,
+.tk-mm button[aria-checked='true']::before,
+.tk-mm button[aria-current='true']::before { scale: 1 1; }
+/* and their colour and weight changes fade rather than snap */
+.tk-mm :is(.tk-mm-opt, .tk-mm-chap, .tk-mm-chap-n, .tk-mm-chap-t, .tk-mm-chip, .tk-mm-value) {
+  transition: color 300ms var(--tk-ease-out), font-weight 300ms var(--tk-ease-out);
+}
+.tk-mm button:focus-visible::before { scale: 1 1; }
+
+.tk-mm-ic { flex: none; width: 22px; height: 22px; fill: var(--tk-walnut); transition: fill 300ms var(--tk-ease-out); }
+.tk-mm-row,
+.tk-mm-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px 0 16px;
+}
+.tk-mm-label { flex: 1 1 auto; min-width: 0; }
+.tk-mm-value { flex: none; color: var(--tk-ink-soft); white-space: nowrap; }
+.tk-mm-caret { width: 16px; height: 16px; }
+
+/* radio options (speed, captions) */
+.tk-mm-opt { padding-left: 24px; }
+.tk-mm-check { width: 18px; height: 18px; fill: var(--tk-matcha-deep); opacity: 0; transition: opacity 300ms var(--tk-ease-out); }
+.tk-mm-opt[aria-checked='true'] { font-weight: 600; }
+.tk-mm-opt[aria-checked='true'] .tk-mm-check { opacity: 1; }
+.tk-mm-note { padding: 12px 24px; color: var(--tk-ink-soft); font-size: 12px; line-height: 18px; }
+
+/* on/off rows */
+.tk-mm-switch[aria-pressed='true'] .tk-mm-ic { fill: var(--tk-matcha-deep); }
+.tk-mm-switch[aria-pressed='true'] .tk-mm-value { color: var(--tk-matcha-deep); font-weight: 600; }
+
+/* chapter list */
+.tk-mm-chap {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px 0 16px;
+}
+.tk-mm-chap-n { color: var(--tk-ink-soft); font-size: 11px; }
+.tk-mm-chap-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-mm-chap-at { color: var(--tk-ink-soft); font-size: 12px; }
+.tk-mm-chap[aria-current='true'] .tk-mm-chap-n { color: var(--tk-matcha-deep); font-weight: 600; }
+.tk-mm-chap[aria-current='true'] .tk-mm-chap-t { font-weight: 600; }
+
+.tk-mm-foot { flex: none; border-top: 1px solid var(--tk-mm-line); }
+.tk-mm button:disabled { opacity: 0.45; cursor: default; }
+.tk-mm button:disabled::before { display: none; }
+
+/* bottom strip of one-tap toggles */
+.tk-mm-strip { flex: none; display: flex; border-top: 1px solid var(--tk-mm-line); }
+.tk-mm-tog {
+  flex: 1 1 0;
+  display: grid;
+  place-items: center;
+  height: 52px;
+  border-left: 1px solid color-mix(in srgb, var(--tk-walnut) 18%, transparent) !important;
+}
+.tk-mm-tog:first-child { border-left: 0 !important; }
+.tk-mm-tog[hidden] { display: none; }
+.tk-mm-tog[aria-pressed='true'] .tk-mm-ic { fill: var(--tk-matcha-deep); }
+.tk-mm-ic-line { fill: none !important; stroke: var(--tk-walnut); stroke-width: 12; stroke-linejoin: round; stroke-linecap: round; transition: stroke 300ms var(--tk-ease-out); }
+.tk-mm-tog[aria-pressed='true'] .tk-mm-ic-line { stroke: var(--tk-matcha-deep); }
+.tk-mm-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 4px;
+  padding: 4px 8px;
+  background: var(--tk-walnut);
+  color: var(--tk-washi);
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms var(--tk-ease-out), translate 160ms var(--tk-ease-out);
+}
+.tk-mm-tog:first-child .tk-mm-tip { left: 8px; translate: 0 4px; }
+.tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close) .tk-mm-tip { left: auto; right: 8px; translate: 0 4px; }
+@media (hover: hover) {
+  .tk-mm-tog:hover .tk-mm-tip { opacity: 1; translate: -50% 0; }
+  .tk-mm-tog:first-child:hover .tk-mm-tip,
+  .tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close):hover .tk-mm-tip { translate: 0 0; }
+}
+.tk-mm-tog:focus-visible .tk-mm-tip { opacity: 1; translate: -50% 0; }
+.tk-mm-tog:first-child:focus-visible .tk-mm-tip,
+.tk-mm-tog:is([data-goto='keys'], .tk-mm-tog-close):focus-visible .tk-mm-tip { translate: 0 0; }
+
+/* picture: light presets */
+.tk-mm-chips { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 8px; }
+.tk-mm-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 64px;
+  text-align: center !important;
+  color: var(--tk-ink-soft) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+}
+.tk-mm-chip[aria-checked='true'] { color: var(--tk-sumi) !important; font-weight: 600 !important; }
+.tk-mm-chip[aria-checked='true'] .tk-mm-ic { fill: var(--tk-matcha-deep); }
+
+/* picture: sliders — a groove with a walnut fill and a hikite pull on its side */
+.tk-mm-slider { padding: 6px 16px 8px; }
+.tk-mm-slider-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.tk-mm-range {
+  --p: 50%;
+  display: block;
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-y;
+}
+.tk-mm-range::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, var(--tk-walnut) 0 var(--p), color-mix(in srgb, var(--tk-walnut) 25%, transparent) var(--p) 100%);
+}
+.tk-mm-range::-moz-range-track { height: 4px; background: color-mix(in srgb, var(--tk-walnut) 25%, transparent); }
+.tk-mm-range::-moz-range-progress { height: 4px; background: var(--tk-walnut); }
+.tk-mm-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 24px;
+  margin-top: -10px;
+  border: 1px solid color-mix(in srgb, var(--tk-hinoki) 70%, transparent);
+  border-radius: 2.5px;
+  background: linear-gradient(var(--tk-hinoki), var(--tk-hinoki)) center / 2px 12px no-repeat, var(--tk-walnut);
+  box-shadow: calc(-2px * var(--tk-light-x)) 2px 1px 0 rgb(0 0 0 / 0.25);
+}
+.tk-mm-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 12px;
+  height: 24px;
+  border: 1px solid color-mix(in srgb, var(--tk-hinoki) 70%, transparent);
+  border-radius: 2.5px;
+  background: linear-gradient(var(--tk-hinoki), var(--tk-hinoki)) center / 2px 12px no-repeat, var(--tk-walnut);
+}
+.tk-mm-range[data-pressed]::-webkit-slider-thumb,
+.tk-mm-range:active::-webkit-slider-thumb { background: linear-gradient(var(--tk-matcha), var(--tk-matcha)) center / 2px 12px no-repeat, var(--tk-walnut); }
+.tk-mm-range:focus-visible { outline: 2px solid var(--tk-matcha-deep); outline-offset: 2px; }
+
+/* keyboard shortcuts */
+.tk-mm-keys { margin: 0; padding: 4px 16px 8px; }
+.tk-mm-key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  border-bottom: 1px solid color-mix(in srgb, var(--tk-walnut) 12%, transparent);
+}
+.tk-mm-key:last-child { border-bottom: 0; }
+.tk-mm-key dt { display: flex; gap: 4px; }
+.tk-mm-key dd { margin: 0; color: var(--tk-ink-soft); font-size: 12px; text-align: right; }
+.tk-mm-key kbd {
+  min-width: 22px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--tk-walnut) 45%, transparent);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--tk-washi) 50%, transparent);
+  color: var(--tk-sumi);
+  font: 11px/14px var(--tk-font);
+  text-align: center;
+}
+
+.tk-svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* post on the left: the door slides out to the right */
+.tk[data-post='left'] .tk-mm { right: auto; left: var(--tk-post-w); }
+.tk[data-post='left'] .tk-mm-body { clip-path: inset(0 calc((1 - var(--tk-mm-o)) * 100%) 0 0); }
+.tk[data-post='left'] .tk-mm-stile { left: calc(var(--tk-mm-o) * 100% - 3px); }
+.tk[data-post='left'] .tk-mm-cast {
+  left: calc(var(--tk-mm-o) * 100%);
+  background: linear-gradient(to right, rgb(0 0 0 / var(--tk-shadow)), rgb(0 0 0 / 0));
+}
+.tk[data-post='left'] .tk-mm-root { clip-path: inset(0 0 0 calc(var(--tk-mm-sub) * 100%)); }
+.tk[data-post='left'] .tk-mm-sub { clip-path: inset(0 calc((1 - var(--tk-mm-sub)) * 100%) 0 0); }
+.tk[data-post='left'] .tk-mm-stile-sub { left: calc(var(--tk-mm-sub) * 100% - 3px); }
+.tk[data-post='left'] .tk-mm button::before { transform-origin: 0% 50%; }
+.tk[data-post='left'] .tk-mm :is(.tk-mm-tog, .tk-mm-chip)::before { transform-origin: 50% 100%; }
+
+.tk[data-error] .tk-mm { display: none; }
+
+.tk-mm-tog.tk-mm-tog-close { display: none; }
+
+/* Phone: the settings door slides across the whole room (picture and floor),
+   so it carries its own close button. The main view becomes a 2x2 grid of
+   tiles above the toggle strip, and Speed a 3x2 grid of choices. */
+@container tk-player (max-width: 600px) {
+  .tk[data-post] .tk-mm {
+    top: var(--tk-frame);
+    bottom: var(--tk-floor-h);  /* its lower edge rests on the floor's top edge */
+    left: var(--tk-frame);
+    right: var(--tk-frame);
+    width: auto;
+  }
+  .tk[data-post][data-seek='clear'] .tk-mm { bottom: calc(var(--tk-floor-h) + var(--tk-frame)); }
+  .tk-mm-root .tk-mm-head { display: none; }
+  /* full width on phones: no walnut edge strip along its side */
+  .tk-mm-stile:not(.tk-mm-stile-sub),
+  .tk-mm-cast { display: none; }
+  .tk-mm .tk-mm-tog.tk-mm-tog-close { display: grid; }
+  .tk-mm-group,
+  .tk-mm-rule { display: none; }
+  .tk-mm-row, .tk-mm-opt, .tk-mm-chap { min-height: 40px; }
+  .tk-mm-tog { height: 44px; }
+  .tk-mm-head { height: 36px; }
+
+  .tk-mm-root .tk-mm-scroll {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+  }
+  .tk-mm-root .tk-mm-row {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 1px;
+    align-content: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--tk-mm-line) !important;
+  }
+  .tk-mm-root .tk-mm-row:nth-child(odd of .tk-mm-row:not([hidden])) { border-right: 1px solid var(--tk-mm-line) !important; }
+  .tk-mm-root .tk-mm-row .tk-mm-ic { grid-row: 1 / 3; align-self: center; }
+  .tk-mm-root .tk-mm-row .tk-mm-label { grid-column: 2; line-height: 16px; }
+  .tk-mm-root .tk-mm-row .tk-mm-value { grid-column: 2; font-size: 11px; line-height: 15px; overflow: hidden; text-overflow: ellipsis; }
+  .tk-mm-root .tk-mm-row .tk-mm-caret { display: none; }
+
+  .tk-mm-sub[data-view='speed'] .tk-mm-scroll {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: start;
+  }
+  .tk-mm-sub[data-view='speed'] .tk-mm-opt {
+    justify-content: center;
+    min-height: 44px;
+    padding: 0;
+    border-bottom: 1px solid var(--tk-mm-line) !important;
+  }
+  .tk-mm-sub[data-view='speed'] .tk-mm-opt:not(:nth-child(3n)) { border-right: 1px solid var(--tk-mm-line) !important; }
+  .tk-mm-sub[data-view='speed'] .tk-mm-opt .tk-mm-label { flex: none; }
+  .tk-mm-sub[data-view='speed'] .tk-mm-check { display: none; }
+}
+/* no keyboard to speak of on touch screens: drop the Shortcuts toggle */
+@media (pointer: coarse) {
+  .tk-mm-tog[data-goto='keys'] { display: none; }
+}
+
+/* ── Error card ─────────────────────────────────────────────────────────────── */
+
+.tk-error-card {
+  position: absolute;
+  z-index: 9;
+  top: 50%;
+  left: calc(var(--tk-frame) + (100% - var(--tk-frame) - var(--tk-post-w)) / 2);
+  translate: -50% -50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - var(--tk-post-w) - 48px);
+  margin: 0;
+  padding: 18px 24px 16px;
+  border: 0;
+  background: var(--tk-washi-card);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  box-shadow: calc(-6px * var(--tk-light-x)) 4px 2px 0 rgb(0 0 0 / 0.12);
+  color: var(--tk-sumi);
+  text-align: center;
+}
+.tk-error-card:not([data-open]) { display: none; }
+.tk-error-icon { width: 36px; height: 36px; }
+.tk-error-title {
+  margin: 4px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+.tk-error-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tk-retry {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  min-width: 96px;
+  margin-top: 8px;
+  padding: 0 22px;
+  border: 1px solid var(--tk-walnut);
+  background: var(--tk-washi);
+  box-shadow: calc(-6px * var(--tk-light-x)) 4px 2px 0 rgb(0 0 0 / 0.12);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  outline: none;
+}
+.tk-retry:hover { background: color-mix(in srgb, var(--tk-washi) 60%, white); }
+.tk-retry:active { translate: 0 1px; box-shadow: calc(-3px * var(--tk-light-x)) 2px 1px 0 rgb(0 0 0 / 0.12); }
+.tk-retry:focus-visible { outline: 2px solid var(--tk-matcha-deep); outline-offset: 3px; }
+.tk-error-code {
+  margin: 2px 0 0;
+  color: var(--tk-ink-soft);
+  font-size: 13px;
+  font-weight: 300;
+}
+
+.tk-buffering { display: none; }
+.tk-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ══ States ═══════════════════════════════════════════════════════════════════ */
+
+/* The view tilts: the wall lifts behind the lintel and the floor rises. */
+.tk[data-floor-up] .tk-wall {
+  translate: 0 calc(var(--tk-frame) - var(--tk-floor-h));
+  transition-duration: var(--tk-rise);
+  transition-timing-function: var(--tk-ease-out);
+}
+.tk[data-floor-up] .tk-floor,
+.tk[data-floor-up] .tk-floor-plane {
+  pointer-events: auto;
+}
+.tk[data-floor-up] .tk-floor-plane {
+  transform: none;
+  filter: none;
+  opacity: 1;
+  transition:
+    transform var(--tk-rise) var(--tk-ease-out),
+    filter var(--tk-rise) var(--tk-ease-out),
+    opacity var(--tk-rise) var(--tk-ease-out);
+}
+.tk[data-floor-up] .tk-mini {
+  transform: translateY(calc(-1 * var(--tk-drop))) perspective(var(--tk-perspective)) rotateX(var(--tk-tilt));
+  filter: brightness(0.5);
+  opacity: 0;
+  transition-duration: var(--tk-rise);
+}
+/* How the floor comes into view (data-floor-mode). Tilt is the default above:
+   it hinges up from the sill. Slide: it rises flat, its top edge travelling
+   with the wall's lower edge. Mask: it holds still and is uncovered as the
+   wall lifts — the reveal edge follows the wall, then clears upwards so the
+   preview card above the floor is never clipped. */
+@property --tk-floor-r { syntax: '<number>'; inherits: false; initial-value: 0; }
+.tk[data-floor-mode='slide'] .tk-floor-plane {
+  transform: translateY(var(--tk-floor-h));
+  filter: none;
+  opacity: 1;
+}
+.tk[data-floor-mode='slide'][data-floor-up] .tk-floor-plane { transform: none; }
+.tk[data-floor-mode='slide'][data-floor-up] .tk-mini {
+  transform: translateY(calc(-1 * var(--tk-drop)));
+  filter: none;
+}
+.tk[data-floor-mode='mask'] .tk-floor-plane {
+  --tk-floor-r: 0;
+  transform: none;
+  filter: none;
+  opacity: 1;
+  clip-path: inset(calc((1 - var(--tk-floor-r)) * 100% - pow(var(--tk-floor-r), 40) * 400px) -200px 0 -200px);
+  transition: --tk-floor-r var(--tk-sink) var(--tk-ease-out);
+}
+.tk[data-floor-mode='mask'][data-floor-up] .tk-floor-plane {
+  --tk-floor-r: 1;
+  transition-duration: var(--tk-rise);
+}
+.tk[data-floor-mode='mask'][data-floor-up] .tk-mini {
+  transform: none;
+  filter: none;
+  /* fully hidden once faded: an invisible strip can still paint over the masked floor in Chrome */
+  visibility: hidden;
+  transition: opacity 200ms var(--tk-ease-out), visibility 0s linear 200ms;
+}
+
+.tk[data-floor-up] .tk-title,
+.tk[data-poster-pending] .tk-title,
+.tk[data-error] .tk-title,
+.tk[data-floor-up] .tk-title-text,
+.tk[data-poster-pending] .tk-title-text,
+.tk[data-error] .tk-title-text {
+  translate: 0 0;
+  transition-duration: var(--tk-rise), var(--tk-mm-dur, 240ms), var(--tk-mm-dur, 240ms);
+  transition-timing-function: var(--tk-ease-out), cubic-bezier(0.33, 1, 0.68, 1), cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* paused and ended: the room's light lowers, sweeping in from the post's side */
+.tk[data-started][data-paused] .tk-dim,
+.tk[data-ended] .tk-dim {
+  clip-path: inset(0 0 0 0);
+}
+
+/* error: the floor lies down and only the card asks for attention */
+.tk[data-error] .tk-floor,
+.tk[data-error] .tk-floor-plane { pointer-events: none; }
+.tk[data-error] .tk-floor-plane {
+  transform: translateY(var(--tk-floor-h)) perspective(var(--tk-perspective)) rotateX(var(--tk-tilt));
+  filter: brightness(0.8);
+  opacity: 0.8;
+}
+.tk[data-error] .tk-mini { transform: none; opacity: 1; filter: brightness(0.8); }
+.tk[data-error] .tk-wall { translate: 0 0; filter: brightness(0.6) saturate(0.6); }
+.tk[data-error] .tk-video { filter: none; }
+.tk[data-error] .tk-cell-volume,
+.tk[data-error] .tk-cell-more { opacity: 0.35; }
+
+/* ══ Layouts ══════════════════════════════════════════════════════════════════ */
+
+/* Post on the left: mirror the room, and the light comes from the left. */
+.tk[data-post='left'] {
+  --tk-light-x: -1;
+  padding-left: var(--tk-post-w);
+  padding-right: var(--tk-frame);
+}
+.tk[data-post='left'] .tk-floor,
+.tk[data-post='left'] .tk-mini { left: var(--tk-post-w); right: var(--tk-frame); }
+.tk[data-post='left'] .tk-post { left: 0; right: auto; }
+.tk[data-post='left'] .tk-alcove::before { left: auto; right: 0; }
+.tk[data-post='left'] .tk-alcove::after { background: linear-gradient(90deg, var(--tk-sumi) 0%, var(--tk-hinoki) 20%); }
+.tk[data-post='left'] .tk-shade { left: var(--tk-post-w); right: var(--tk-frame); }
+
+/* Tucked: the post slides out of the frame while the floor is down, so the picture
+   fills the player; reach for the controls and it slides back in with the floor.
+   The player keeps its size: the picture runs the full width, and the post rides
+   in over its edge. */
+@container tk-player (min-width: 601px) {
+  .tk[data-post='tuck'] { padding-right: var(--tk-frame); }
+  .tk[data-post='tuck'] .tk-post {
+    transform: translateX(100%);
+    transition: transform var(--tk-sink) var(--tk-ease-out);
+  }
+  .tk[data-post='tuck'][data-floor-up] .tk-post { transform: none; transition-duration: var(--tk-rise); }
+  /* at rest the thin seek strip and the shade run to the frame; the shade's
+     floor-up drawing still stops at the post, and only it is cast sideways */
+  .tk[data-post='tuck'] .tk-mini,
+  .tk[data-post='tuck'] .tk-shade { right: var(--tk-frame); }
+  /* the floor itself runs on under the post, so no gap opens as the post leaves;
+     its plane — and every control on it — still stops at the post's edge, while
+     the plane's surface reaches on past it, under the post */
+  .tk[data-post='tuck'] .tk-floor { right: var(--tk-frame); }
+  .tk[data-post='tuck'] .tk-floor-plane { right: calc(var(--tk-post-w) - var(--tk-frame)); }
+  .tk[data-post='tuck'] .tk-floor-surface { right: calc(-72px - var(--tk-post-w)); }
+  .tk[data-post='tuck'] .tk-shade::before { --tk-shade-dir: 0; }
+  /* the post's edge of the shadow travels with the post */
+  .tk[data-post='tuck'] .tk-shade::after {
+    right: 0;
+    transition: opacity var(--tk-sink) var(--tk-ease-out), right var(--tk-sink) var(--tk-ease-out);
+  }
+  .tk[data-post='tuck'][data-depth-active] .tk-shade::after { right: -10px; }
+  .tk[data-post='tuck'][data-floor-up] .tk-shade::after { right: calc(var(--tk-post-w) - var(--tk-frame)); transition-duration: var(--tk-rise); }
+  .tk[data-post='tuck'][data-floor-up][data-depth-active] .tk-shade::after { right: calc(var(--tk-post-w) - var(--tk-frame) - 10px); }
+  .tk[data-post='tuck'] .tk-dim { right: calc(var(--tk-post-w) - var(--tk-frame)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk[data-post='tuck'] .tk-post { transition: none; }
+}
+
+/* Compact: no post — its controls sit on the floor as a second edge piece. */
+.tk[data-post='none'] { --tk-post-w: var(--tk-frame); }
+@container tk-player (min-width: 601px) {
+  .tk[data-post='none'] { --tk-tools-w: 156px; }
+  .tk[data-post='none'][data-floor-mode='slide'] .tk-post { transform: translateY(var(--tk-floor-h)); filter: none; opacity: 1; }
+  .tk[data-post='none'][data-floor-mode='slide'][data-floor-up] .tk-post { transform: none; }
+  .tk[data-post='none'][data-floor-mode='mask'] .tk-post {
+    --tk-floor-r: 0;
+    transform: none;
+    filter: none;
+    opacity: 1;
+    clip-path: inset(calc((1 - var(--tk-floor-r)) * 100% - pow(var(--tk-floor-r), 40) * 400px) -200px 0 -200px);
+    transition: --tk-floor-r var(--tk-sink) var(--tk-ease-out);
+  }
+  .tk[data-post='none'][data-floor-mode='mask'][data-floor-up] .tk-post { --tk-floor-r: 1; transition-duration: var(--tk-rise); }
+}
+
+@container tk-player (max-width: 600px) {
+  .tk:not([data-post='none']) {
+    --tk-post-w: var(--tk-frame);
+    --tk-tools-w: 132px;
+    --tk-floor-h: 48px;
+    --tk-edge-w: 60px;
+    padding-left: var(--tk-frame);
+    padding-right: var(--tk-frame);
+  }
+  .tk[data-post='left'] .tk-floor,
+  .tk[data-post='left'] .tk-mini { left: var(--tk-frame); }
+  .tk .tk-play .tk-icon { width: 32px; height: 32px; }
+  .tk .tk-play .tk-icon-replay { width: 26px; height: 26px; }
+  .tk .tk-title { font-size: 13px; padding: 6px 14px; left: 12px; }
+  .tk[data-title-align='right'] .tk-title { left: auto; right: 12px; }
+  .tk[data-title-align='center'] .tk-title { left: 50%; }
+  .tk .tk-time { font-size: 12px; gap: 10px; }
+  .tk .tk-preview { width: 116px; }
+  .tk { --tk-pv-half: 58px; }
+  .tk .tk-preview-thumb { width: 108px; min-width: 108px; max-width: 108px; height: 60.75px; min-height: 60.75px; max-height: 60.75px; }
+  /* short groove: the joints shrink with it */
+  .tk .tk-chapter:not(:first-of-type)::before,
+  .tk .tk-chapter:not(:first-of-type)::after { width: 6px; }
+  .tk .tk-chapter:not(:first-of-type)::after { height: 3px; }
+}
+
+/* Phone (and any player under 600px wide): there's no room for a post, so its
+   three controls hang from the lintel as a small washi card on the post's side,
+   mirroring the title card. The card wipes down with the floor and hides with
+   it, and the seek door gets the floor's full width. Volume becomes a mute
+   toggle (phones have volume buttons). Applies whatever data-post says, except
+   that "left" hangs the card on the left. */
+@container tk-player (max-width: 600px) {
+  .tk[data-post] {
+    --tk-post-w: var(--tk-frame);
+    --tk-tools-w: 0px;
+    --tk-card-inset: 12px;
+    --tk-card-cell: 40px;
+  }
+  .tk .tk-mini::before { display: none; }
+  .tk[data-post] { --tk-shade-dir: 0; }
+  .tk[data-post] .tk-shade { left: var(--tk-frame); right: var(--tk-frame); }
+  .tk .tk-pull { height: 30px; }
+
+  .tk[data-post] .tk-post {
+    z-index: 4;
+    top: var(--tk-frame);
+    bottom: auto;
+    left: auto;
+    right: calc(var(--tk-frame) + var(--tk-card-inset));
+    width: auto;
+    height: var(--tk-card-cell);
+    flex-direction: row;
+    background: var(--tk-washi-card);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: 0;
+    color: var(--tk-walnut);
+    box-shadow:
+      0
+      calc(var(--tk-shade-off) / 2)
+      var(--tk-shade-blur)
+      calc(var(--tk-shade-off) / 2)
+      rgb(0 0 0 / var(--tk-shade-a));
+    transform: none;
+    filter: none;
+    opacity: 1;
+    /* hangs from the lintel: unmasked downwards (room left for its shadow) */
+    clip-path: inset(0 -16px 100% -16px);
+    pointer-events: none;
+    transition: clip-path var(--tk-sink) var(--tk-ease-out);
+  }
+  .tk[data-post][data-floor-up] .tk-post,
+  .tk[data-post][data-error] .tk-post {
+    clip-path: inset(0 -16px -16px -16px);
+    pointer-events: auto;
+    transition-duration: var(--tk-rise);
+  }
+  .tk[data-post='left'] .tk-post { right: auto; left: calc(var(--tk-frame) + var(--tk-card-inset)); }
+  .tk[data-title-layer='over'][data-post] .tk-post { z-index: 6; }
+  .tk .tk-post::before { display: none; }
+  /* while the settings door is open, the two banners wipe back up behind the lintel */
+  .tk[data-post][data-floor-up][data-tk-mm-open] .tk-post {
+    clip-path: inset(0 -16px 100% -16px);
+    pointer-events: none;
+    transition-duration: 300ms;
+  }
+  .tk[data-post][data-floor-up][data-tk-mm-open] .tk-title { translate: 0 calc(-1 * var(--tk-title-shift)); transition-duration: 300ms, 0s, 0s; }
+  .tk[data-post][data-floor-up][data-tk-mm-open] .tk-title-text { translate: 0 var(--tk-title-shift); transition-duration: 300ms; }
+
+  /* the title card takes the other side of the lintel */
+  .tk[data-post] .tk-title {
+    left: 12px;
+    right: auto;
+    transform: none;
+    max-width: calc(100% - 3 * var(--tk-card-cell) - 3 * var(--tk-card-inset));
+    margin: 0 !important;
+  }
+  .tk[data-post='left'] .tk-title { left: auto; right: 12px; }
+
+  .tk .tk-cell {
+    flex: none;
+    width: var(--tk-card-cell);
+    min-height: 0;
+    border-bottom: 0;
+    border-left: 1px solid color-mix(in srgb, var(--tk-walnut) 25%, transparent);
+  }
+  .tk .tk-cell:first-child { border-left: 0; }
+  .tk .tk-post .tk-btn { width: var(--tk-card-cell); height: var(--tk-card-cell); }
+
+  /* volume: the mute toggle only */
+  .tk .tk-vol-idle,
+  .tk .tk-vol,
+  .tk .tk-vol-groove { display: none; }
+  .tk .tk-vol-mask,
+  .tk .tk-vol-body { translate: none !important; transition: none; }
+  .tk .tk-post .tk-cell-volume .tk-mute { height: 100%; }
+
+  .tk .tk-post .tk-icon,
+  .tk .tk-post .tk-cell-volume .tk-mute .tk-icon { width: 22px; height: 22px; }
+  .tk .tk-more-icon { --tk-dot: 1.75px; --tk-dot-gap: 5.85px; --tk-line-w: 6.5px; --tk-line-h: 1.5px; }
+  .tk .tk-fs-corners { --tk-fs-rest: 7.4px; --tk-fs-arm-rest: 4px; --tk-fs-inset: 6px; }
+  .tk .tk-post .tk-btn:hover,
+  .tk .tk-post .tk-btn[aria-expanded='true'] { background: color-mix(in srgb, var(--tk-walnut) 10%, transparent); color: var(--tk-sumi); }
+  .tk .tk-post .tk-btn:focus-visible::after { outline-color: var(--tk-matcha-deep); inset: 4px; }
+}
+
+/* Post hidden, on players wider than 600px: the post's controls sit on the
+   floor as a second edge piece (narrower players use the hanging card). */
+@container tk-player (min-width: 601px) {
+  .tk[data-post='none'] .tk-post {
+    top: auto;
+    bottom: 0;
+    right: var(--tk-frame);
+    width: var(--tk-tools-w);
+    height: var(--tk-floor-h);
+    flex-direction: row;
+    background: var(--tk-washi-door);
+    border-left: 2px solid var(--tk-walnut);
+    color: var(--tk-walnut);
+    transform-origin: calc(var(--tk-tools-w) + var(--tk-frame) - 50cqw) 0%;
+    transform: translateY(var(--tk-floor-h)) perspective(var(--tk-perspective)) rotateX(var(--tk-tilt));
+    filter: brightness(0.8);
+      opacity: 0.8;
+    pointer-events: none;
+    transition:
+      transform var(--tk-sink) var(--tk-ease-out),
+      filter var(--tk-sink) var(--tk-ease-out),
+      opacity var(--tk-sink) var(--tk-ease-out);
+  }
+  .tk[data-post='none'] .tk-mini::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: var(--tk-tools-w);
+    background: var(--tk-washi-door);
+    border-left: 2px solid var(--tk-walnut);
+  }
+  .tk[data-post='none'][data-floor-up] .tk-post {
+    transform: none;
+    filter: none;
+    opacity: 1;
+    pointer-events: auto;
+    transition: transform var(--tk-rise) var(--tk-ease-out), filter var(--tk-rise) var(--tk-ease-out), opacity var(--tk-rise) var(--tk-ease-out);
+  }
+  .tk[data-post='none'] .tk-cell { min-height: 0; border-bottom: 0; border-left: 1px solid color-mix(in srgb, var(--tk-walnut) 35%, transparent); }
+  .tk[data-post='none'] .tk-cell:first-child { border-left: 0; }
+  /* post hidden: the volume cell is simply the mute button */
+  .tk[data-post='none'] .tk-vol-idle { display: none; }
+  .tk[data-post='none'] .tk-post .tk-cell-volume .tk-mute .tk-icon { width: 26px; height: 26px; }
+  .tk[data-post='none'] .tk-post .tk-cell-volume .tk-mute:focus-visible::after { outline-color: var(--tk-matcha); }
+
+  .tk[data-post='none'] .tk-post::before { display: none; }
+  /* the row is washi, so hover/open darken it (the post's washi colour would vanish) */
+  .tk[data-post='none'] .tk-post .tk-btn:hover,
+  .tk[data-post='none'] .tk-post .tk-btn[aria-expanded='true'] { background: color-mix(in srgb, var(--tk-walnut) 8%, transparent); color: var(--tk-sumi); }
+  .tk[data-post='none'] .tk-post .tk-btn:focus-visible::after { outline-color: var(--tk-matcha-deep); inset: 6px 4px; }
+
+  /* Post hidden: the volume cell is the fixed edge piece (the mute button). On
+     hover a short walnut column rises above it, its washi door filling from the
+     bottom to the level, and wipes in from the cell's top edge (unmasking: the
+     contents hold still while the clip edge rises). */
+  .tk[data-post='none'] .tk-cell-volume {
+    --tk-vol-rise: 128px;
+    --tk-vol-edge: var(--tk-floor-h);
+    overflow: visible;
+  }
+  .tk[data-post='none'] .tk-vol,
+  .tk[data-post='none'] .tk-vol-groove { display: block; }
+  .tk[data-post='none'] .tk-vol-mask {
+    top: auto;
+    bottom: 0;
+    height: calc(100% + var(--tk-vol-rise));
+    overflow: visible;
+    translate: none !important;
+    clip-path: inset(var(--tk-vol-rise) 0 0 0);
+    transition: clip-path 240ms var(--tk-ease-out);
+  }
+  .tk[data-post='none'] .tk-cell-volume:is(:hover, :has(:focus-visible), [data-tk-active]) .tk-vol-mask {
+    clip-path: inset(0 0 0 0);
+    transition: clip-path 420ms var(--tk-ease-out);
+  }
+  .tk[data-post='none'] .tk-vol-body { translate: none !important; }
+  /* the walnut column above the cell (the cell itself stays washi) */
+  .tk[data-post='none'] .tk-vol-body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--tk-vol-edge);
+    background: var(--tk-noise), var(--tk-walnut);
+    background-blend-mode: soft-light, normal;
+  }
+  .tk[data-post='none'] .tk-post .tk-cell-volume .tk-mute { height: var(--tk-vol-edge); }
+  /* shut, a pull at 0% would peek over the cell's top edge: hide it until the
+     column opens, and let it go only once the column has closed over it */
+  .tk[data-post='none'] .tk-vol-pull { opacity: 0; transition: opacity 80ms linear 180ms; }
+  .tk[data-post='none'] .tk-cell-volume:is(:hover, :has(:focus-visible), [data-tk-active]) .tk-vol-pull { opacity: 1; transition: none; }
+  /* the door and groove stop at the cell's top edge (the cell is already washi) */
+  .tk[data-post='none'] .tk-vol-door { bottom: 0; height: var(--tk-vol-at); }
+  .tk[data-post='none'] .tk-vol-groove { bottom: 0; }
+}
+
+/* ── Clear seek: the floor lies over the picture ───────────────────────────── */
+/* data-seek="clear": the picture keeps its full height and the floor tilts up
+   over its bottom edge instead of lifting it. The floor itself is see-through;
+   the washi door is frosted, so the played part blurs the picture behind it
+   and the unplayed track shows the picture plainly.
+   Backdrop-blur note: anything on the door's ancestors that makes a backdrop
+   root (filter, opacity < 1, clip-path, mix-blend-mode…) would cut the picture
+   out of the door's backdrop — so here the plane only tilts; it never dims. */
+.tk[data-seek='clear'] {
+  --tk-washi-frost: color-mix(in srgb, var(--tk-paper) 72%, transparent);
+}
+.tk[data-seek='clear'][data-floor-up] .tk-wall { translate: none; }
+/* sit on the picture, above the bottom frame */
+.tk[data-seek='clear'] .tk-floor { bottom: var(--tk-frame); }
+.tk[data-seek='clear'] .tk-mm { bottom: calc(var(--tk-floor-h) + var(--tk-frame)); }
+@container tk-player (min-width: 601px) {
+  .tk[data-seek='clear'][data-post='none'] .tk-post { bottom: var(--tk-frame); }
+}
+@container tk-player (min-width: 601px) {
+  .tk[data-seek='clear'][data-post='none'] .tk-post,
+  .tk[data-seek='clear'][data-post='none'][data-floor-up] .tk-post { filter: none; opacity: 1; }
+}
+.tk[data-seek='clear'] .tk-floor-plane,
+.tk[data-seek='clear'][data-floor-up] .tk-floor-plane {
+  filter: none;
+  opacity: 1;
+}
+.tk[data-seek='clear'] .tk-floor-surface { background: transparent; }
+
+/* the door and the post-hidden tools: frosted washi */
+.tk[data-seek='clear'] .tk-door {
+  background: var(--tk-washi-frost);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+@container tk-player (min-width: 601px) {
+  .tk[data-seek='clear'][data-post='none'] .tk-post {
+    background: var(--tk-washi-frost);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* the groove over the picture: a hairline of washi under it keeps it legible on
+   dark footage; the "not loaded" dusting stays */
+.tk[data-seek='clear'] .tk-groove {
+  box-shadow: inset 0 2px 1px rgb(0 0 0 / 0.4), 0 1px 0 color-mix(in srgb, var(--tk-washi) 35%, transparent);
+}
+/* kumiko joints: no floor to cut the groove with, so the groove is simply
+   parted and the diagonal key bridges the gap */
+.tk[data-seek='clear'] .tk-chapter:not(:first-of-type) { --tk-gap-start: 3px; }
+.tk[data-seek='clear'] .tk-chapter:not(:last-of-type) { --tk-gap-end: 3px; }
+.tk[data-seek='clear'] .tk-chapter:not(:first-of-type)::before { display: none; }
+
+/* ── Fullscreen: the room fills the screen ─────────────────────────────────── */
+
+.tk:fullscreen {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+}
+.tk:fullscreen .tk-alcove {
+  flex: 1 1 auto;
+  aspect-ratio: auto;
+  background: color-mix(in srgb, var(--tk-sumi) 45%, black);
+}
+/* fill the alcove edge to edge: no letterbox bars inside the quiet frame */
+.tk:fullscreen .tk-video,
+.tk:fullscreen .tk-poster img { object-fit: cover; }
+
+/* ── Other frame shapes (data-aspect) ──────────────────────────────────────────
+   The frame takes the given shape; the whole picture shows, letterboxed on dark
+   wall where the video's shape differs. A tall shape never grows taller than
+   the screen: the whole player narrows (centred) instead. */
+.tk[data-aspect]:not([data-aspect='16:9']):not(:fullscreen) {
+  max-width: calc(85svh * var(--tk-aspect-n, 1.7778) + var(--tk-frame) + var(--tk-post-w) + 2px);
+  margin-inline: auto;
+}
+.tk[data-aspect]:not([data-aspect='16:9']) :is(.tk-video, .tk-poster img),
+.tk:fullscreen[data-aspect]:not([data-aspect='16:9']) :is(.tk-video, .tk-poster img) {
+  object-fit: contain;
+  background: color-mix(in srgb, var(--tk-sumi) 55%, black);
+}
+.tk[data-aspect]:not([data-aspect='16:9']) .tk-video { --media-object-fit: contain; }
+
+/* ── Captions ───────────────────────────────────────────────────────────────────
+   Set on washi strips over the picture (captions.js), clear of the floor: low in
+   the alcove while the floor is down, lifted above it when it rises. */
+.tk-captions {
+  position: absolute;
+  z-index: 5;
+  left: calc(var(--tk-frame) + 24px);
+  right: calc(var(--tk-post-w) + 24px);
+  bottom: calc(var(--tk-frame) + 18px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  font-size: clamp(13px, 1.9cqi, 21px);
+  line-height: 1.35;
+  text-align: center;
+  transition: bottom var(--tk-sink) var(--tk-ease-out);
+}
+.tk[data-floor-up] .tk-captions { bottom: calc(var(--tk-floor-h) + 14px); transition-duration: var(--tk-rise); }
+.tk-cap-line {
+  max-width: 100%;
+  padding: 0.25em 0.8em;
+  background: var(--tk-washi-card);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  color: var(--tk-sumi);
+  box-shadow: 0 calc(var(--tk-shade-off) / 3) var(--tk-shade-blur) calc(var(--tk-shade-off) / -3) rgb(0 0 0 / var(--tk-shade-a));
+  animation: tk-cap-in 320ms var(--tk-ease-out) both;
+}
+@keyframes tk-cap-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+.tk[data-shade='none'] .tk-cap-line { box-shadow: none; }
+/* centred on the picture, whichever side the post stands */
+.tk[data-post='left'] .tk-captions { left: calc(var(--tk-post-w) + 24px); right: calc(var(--tk-frame) + 24px); }
+.tk[data-post='none'] .tk-captions { right: calc(var(--tk-frame) + 24px); }
+.tk-cap-line { text-wrap: balance; }
+@container tk-player (max-width: 600px) {
+  .tk[data-post] .tk-captions { left: calc(var(--tk-frame) + 12px); right: calc(var(--tk-frame) + 12px); }
+  .tk-captions { bottom: calc(var(--tk-frame) + 12px); } /* lower than the floor-up rule, which still lifts it */
+}
+
+/* ── Kumiko lattice ─────────────────────────────────────────────────────────────
+   As the settings door slides out, the shadow of its lattice falls across the
+   picture beside it, as light through a shoji would: two sets of bars and a soft
+   wash, fading away from the door's edge. Adjustable on the player:
+     --tk-lattice-angle    how far the light rakes the bars (default 20deg)
+     --tk-lattice-size     the width of a lattice cell (default 54px; cells are 1.4× as tall)
+     --tk-lattice-opacity  the darkness of the bars, 0 – 1 (default 0.08)                */
+.tk {
+  --tk-lattice-angle: 20deg;
+  --tk-lattice-size: 54px;
+  --tk-lattice-opacity: 0.08;
+}
+.tk-mm-lattice {
+  --tk-lattice-w: calc(var(--tk-lattice-size) * 6);
+  --tk-lattice-bar: max(2px, calc(var(--tk-lattice-size) * 0.075));
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc((1 - var(--tk-mm-o)) * 100% - var(--tk-lattice-w));
+  width: var(--tk-lattice-w);
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--tk-mm-o);
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+}
+.tk-mm-lattice::before {
+  content: '';
+  position: absolute;
+  inset: -50% 0;
+  background:
+    repeating-linear-gradient(90deg, rgb(0 0 0 / var(--tk-lattice-opacity)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) var(--tk-lattice-size)),
+    repeating-linear-gradient(0deg, rgb(0 0 0 / var(--tk-lattice-opacity)) 0 var(--tk-lattice-bar), transparent var(--tk-lattice-bar) calc(var(--tk-lattice-size) * 1.4)),
+    linear-gradient(to left, rgb(0 0 0 / calc(var(--tk-lattice-opacity) * 0.6)), transparent 80%);
+  background-position: right 0 top 0;
+  filter: blur(1.2px);
+  transform: skewY(calc(var(--tk-light-x) * -1 * var(--tk-lattice-angle)));
+  transform-origin: 100% 50%;
+}
+.tk[data-post='left'] .tk-mm-lattice {
+  left: calc(var(--tk-mm-o) * 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
+}
+.tk[data-post='left'] .tk-mm-lattice::before { background-position: left 0 top 0; transform-origin: 0% 50%; }
+.tk[data-shade='none'] .tk-mm-lattice { display: none; }
+@container tk-player (max-width: 600px) { .tk-mm-lattice { display: none; } }
+
+/* ── Hanko seal ─────────────────────────────────────────────────────────────────
+   Pressed onto the shut door when the video ends: it comes down large and soft,
+   presses in, and settles a little askew. It shows the title's initials, any text
+   (data-seal) or an image (data-seal-src: SVG or PNG), at the left beside replay,
+   in the centre of the door, or at the right beside the time (data-seal-align).
+   Ink: --tk-seal-ink (the scheme's accent on paper by default). */
+.tk { --tk-seal-ink: var(--tk-matcha-deep); --tk-seal-h: calc(var(--tk-floor-h) * 0.62); }
+.tk-seal {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 18px;
+  height: var(--tk-seal-h);
+  translate: 0 -50%;
+  pointer-events: none;
+  opacity: 0;
+  rotate: -6deg;
+  transition: opacity 300ms var(--tk-ease-out);
+}
+.tk[data-seal-align='center'] .tk-seal { left: 50%; translate: -50% -50%; }
+.tk[data-seal-align='right'] .tk-seal { left: auto; right: calc(var(--tk-time-w, 52px) + 34px); }
+.tk-seal-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: var(--tk-seal-h);
+  padding: 0 8px;
+  border-radius: 5px;
+  background: var(--tk-seal-ink);
+  /* the carved rim: a hairline of paper just inside the edge */
+  box-shadow: inset 0 0 0 2.5px var(--tk-seal-ink), inset 0 0 0 3.8px var(--tk-paper);
+  color: var(--tk-paper);
+  font-family: var(--tk-font);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  /* stamped ink: a speckled mask, so the paper shows through in places */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 80px 80px;
+  mask-size: 80px 80px;
+}
+.tk-seal[data-kind='mark'] .tk-seal-face { width: var(--tk-seal-h); padding: 0; gap: 1px; font-size: 15px; }
+.tk-seal[data-kind='mark'][data-letters='1'] .tk-seal-face { font-size: 20px; }
+.tk-seal[data-kind='mark'][data-letters='3'] .tk-seal-face { font-size: 12px; }
+.tk-seal[data-kind='text'] .tk-seal-face { padding: 0 12px; font-size: 13px; letter-spacing: 0.08em; }
+/* an image is shown as it is: no ink, no rim, no speckle */
+.tk-seal[data-kind='image'] .tk-seal-face {
+  min-width: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.tk-seal-face img { display: block; height: 100%; width: auto; max-width: calc(var(--tk-seal-h) * 4); object-fit: contain; }
+.tk[data-ended] .tk-seal {
+  opacity: 1;
+  animation: tk-stamp 820ms var(--tk-ease-out) both;
+}
+@keyframes tk-stamp {
+  0%   { opacity: 0;   scale: 1.7;  rotate: -16deg; filter: blur(2px); }
+  45%  { opacity: 0.95; scale: 0.9; rotate: -7deg;  filter: blur(0); animation-timing-function: var(--tk-ease-out); }
+  70%  { scale: 1.03; }
+  100% { opacity: 1;   scale: 1;    rotate: -6deg; }
+}
+
+/* ── Parallax depth ─────────────────────────────────────────────────────────────
+   The wall drifts a few pixels against the frame with the pointer or the phone's
+   tilt (depth.js sets the offset). A slight scale keeps its edges out of sight. */
+.tk[data-depth-active] .tk-wall {
+  transform: translate3d(var(--tk-px, 0px), var(--tk-py, 0px), 0) scale(1.02);
+}
+/* the shade moves too, against the wall: each drawing of the shadow
+   reaches 10px past the picture (its spread pulls the edge back to where it was),
+   and the shade box clips what spills over */
+.tk[data-depth-active] .tk-shade { overflow: hidden; }
+.tk[data-depth-active] .tk-shade::before,
+.tk[data-depth-active] .tk-shade::after {
+  inset: -10px;
+  box-shadow: inset
+    calc(-1 * var(--tk-shade-dir) * var(--tk-shade-reach))
+    var(--tk-shade-reach)
+    var(--tk-shade-blur)
+    10px
+    rgb(0 0 0 / var(--tk-shade-a));
+  /* the shade drifts the other way from the picture, which deepens the recess */
+  translate: calc(-1 * var(--tk-px, 0px)) calc(-1 * var(--tk-py, 0px));
+  will-change: translate, opacity;
+}
+
+/* ── Magnifier ──────────────────────────────────────────────────────────────────
+   A round lens that follows the pointer over the picture and shows the live frame
+   enlarged (magnifier.js draws it). Its rim is walnut inside a washi ring. */
+.tk[data-magnifier] .tk-alcove { cursor: none; }
+.tk[data-magnifier][data-lens-touch] .tk-alcove { touch-action: none; }
+.tk-lens {
+  --tk-lens: 176px;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: var(--tk-lens);
+  height: var(--tk-lens);
+  margin: calc(var(--tk-lens) / -2) 0 0 calc(var(--tk-lens) / -2);
+  border-radius: 50%;
+  pointer-events: none;
+  visibility: hidden;
+  clip-path: circle(0 at 50% 50%);
+  transition: clip-path 280ms var(--tk-ease-out), visibility 0s linear 280ms;
+}
+.tk-lens[data-visible] {
+  visibility: visible;
+  clip-path: circle(75% at 50% 50%);
+  transition: clip-path 380ms var(--tk-ease-out), visibility 0s;
+}
+.tk-lens canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--tk-clay);
+}
+.tk-lens::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid var(--tk-walnut);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--tk-paper) 88%, transparent),
+    0 calc(4px + var(--tk-shade) * 8px) calc(10px + var(--tk-shade) * 14px) rgb(0 0 0 / calc(var(--tk-shade-a) + 0.1));
+}
+.tk-lens-zoom { z-index: 1; }
+.tk-lens-zoom {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  translate: -50% 0;
+  padding: 2px 8px;
+  background: var(--tk-paper);
+  color: var(--tk-sumi);
+  font-size: 11px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tk-walnut) 30%, transparent);
+}
+@container tk-player (max-width: 600px) { .tk-lens { --tk-lens: 132px; } }
+/* square lens: data-magnifier-shape="square" */
+.tk[data-magnifier-shape='square'] .tk-lens { clip-path: inset(50%); }
+.tk[data-magnifier-shape='square'] .tk-lens[data-visible] { clip-path: inset(-40px); }
+.tk[data-magnifier-shape='square'] .tk-lens canvas,
+.tk[data-magnifier-shape='square'] .tk-lens::after { border-radius: 3px; }
+
+/* ── Reduced motion: nothing slides or tilts; states change in place ──────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .tk .tk-wall,
+  .tk[data-floor-up] .tk-wall { translate: none; transition: none; }
+  .tk .tk-floor-plane,
+  .tk[data-floor-up] .tk-floor-plane,
+  .tk .tk-mini,
+  .tk[data-floor-up] .tk-mini {
+    transform: none;
+    translate: none;
+    filter: none;
+    transition: opacity 150ms var(--tk-ease-out) !important;
+  }
+  .tk .tk-dim { transition: none; }
+  .tk { transition: none !important; --tk-intro: 0; }
+  .tk .tk-osd, .tk .tk-osd[data-state] { clip-path: none; opacity: 0; transition: opacity 200ms var(--tk-ease-out); }
+  .tk .tk-osd[data-state='in'] { opacity: 1; }
+  .tk[data-ended] .tk-seal { animation: none; }
+  .tk .tk-cap-line { animation: none; }
+  .tk .tk-mm-lattice { opacity: calc(var(--tk-mm-o) * 0.8); }
+  .tk .tk-lens, .tk .tk-lens[data-visible] { clip-path: none; transition: none; }
+  .tk .tk-title-text { translate: none; transition: none; }
+  .tk .tk-preview-mask, .tk .tk-preview-body { translate: none !important; transition: none !important; }
+  .tk .tk-floor-plane, .tk .tk-mini { transition: opacity 150ms var(--tk-ease-out) !important; }
+  .tk .tk-hover-line { transition: none !important; }
+  .tk .tk-vol-mask, .tk .tk-vol-body { translate: none !important; transition: none !important; }
+  .tk .tk-fullscreen { --tk-fs-p: 0 !important; }
+  .tk .tk-mm { transition: none !important; }
+  .tk .tk-mm button::before, .tk .tk-mm-tip { transition: none !important; }
+  .tk .tk-more-icon > span { transition: none; }
+  .tk .tk-post { transition: none !important; }
+  .tk .tk-vol-idle { transition: none; }
+  .tk .tk-floor-plane { clip-path: none !important; }
+  .tk .tk-cell-volume:not(:hover):not(:has(:focus-visible)):not([data-tk-active]) .tk-vol-mask { visibility: hidden; }
+  .tk[data-post='none'] .tk-cell-volume .tk-vol-mask { visibility: visible; }
+  .tk-seek, .tk { transition: none !important; }
+  .tk .tk-title { transition: opacity 150ms var(--tk-ease-out); }
+  .tk:not([data-floor-up]):not([data-poster-pending]):not([data-error]) .tk-title { translate: 0 0; opacity: 0; }
+  .tk-glide { animation: tk-pulse 1.6s var(--tk-ease-out) infinite; left: 0; right: 0; width: auto; translate: none; }
+}
+@keyframes tk-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.7; }
+}
+
+/* ── Forced colours: keep every control visible ───────────────────────────── */
+
+@media (forced-colors: active) {
+  .tk-groove, .tk-pull, .tk-door { forced-color-adjust: none; }
+  .tk-btn:focus-visible::after, .tk-pull:focus-visible::before, .tk-vol-pull:focus-visible::before { outline-color: Highlight; }
+}
+
+/* Small phones: a lower floor (40px), so less of the picture is lifted out of
+   view. Every target on it stays at least 40px tall, well over the 24px minimum. */
+@container tk-player (max-width: 480px) {
+  .tk:not([data-post='none']), .tk[data-post='none'] { --tk-floor-h: 40px; }
+  .tk .tk-play .tk-icon { width: 26px; height: 26px; }
+  .tk .tk-play .tk-icon-replay { width: 22px; height: 22px; }
+  .tk .tk-time { font-size: 11px; }
+  .tk .tk-pull { height: 26px; }
+}

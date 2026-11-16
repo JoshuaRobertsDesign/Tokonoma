@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tokonoma — a skin for Video.js v10</title>
+    <meta name="description" content="A Video.js v10 skin shaped like the alcove of a Japanese room. Reach for the controls and your point of view lowers: the floor rises into view, and a washi door slides along it as the video plays." />
+    <meta name="theme-color" content="#171512" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="canonical" href="https://tokonoma-site.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tokonoma-site.vercel.app/" />
+    <meta property="og:title" content="Tokonoma — a skin for Video.js v10" />
+    <meta property="og:description" content="A Video.js v10 skin shaped like the alcove of a Japanese room. Reach for the controls and your point of view lowers: the floor rises into view, and a washi door slides along it as the video plays." />
+    <meta property="og:image" content="https://tokonoma-site.vercel.app/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tokonoma: a video player in a walnut frame, with a washi door for a seek bar." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tokonoma — a skin for Video.js v10" />
+    <meta name="twitter:description" content="A Video.js v10 skin shaped like the alcove of a Japanese room. Reach for the controls and your point of view lowers: the floor rises into view, and a washi door slides along it as the video plays." />
+    <meta name="twitter:image" content="https://tokonoma-site.vercel.app/og.jpg" />
+    <link rel="stylesheet" href="/src/demo.css" />
+    <link rel="stylesheet" href="/src/tokonoma.css" />
+    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/element.js"></script>
+    <script type="module" src="/src/demo.js"></script>
+  </head>
+  <body>
+    <main class="demo">
+      <header class="site-head">
+        <h1 class="site-title"><span class="site-word">Tokonoma</span> <span lang="ja">床の間</span></h1>
+        <p class="site-caption">A skin for Video.js v10</p>
+        <p class="site-lede">A video player shaped like the alcove of a Japanese room. The picture hangs quietly in its recess. Reach for the controls and your point of view shifts down, as if you had knelt on the tatami, and the floor of the room comes into sight.</p>
+        <p class="site-byline">Designed &amp; built by <a href="https://www.framer.com/@joshua-roberts/">Joshua Roberts</a></p>
+        <figure class="site-reel">
+          <div class="site-reel-bar">
+            <span class="site-reel-tag"><i aria-hidden="true"></i>Tour</span>
+            <span class="site-reel-len">Recorded · 0:15</span>
+            <button type="button" class="site-reel-toggle">Pause</button>
+          </div>
+          <div class="site-reel-screen">
+            <img class="site-reel-still" src="showcase/showcase-poster.webp" srcset="showcase/showcase-poster-640.webp 640w, showcase/showcase-poster.webp 1040w" sizes="(min-width: 1000px) 560px, 100vw" alt="" width="1040" height="554" fetchpriority="high" decoding="async">
+            <video src="showcase/showcase.mp4" muted loop playsinline preload="none" width="1040" height="554" aria-label="A short tour of the player: the floor rises, the door pull is dragged with a preview card, the settings door opens with its lattice shadow, and a seal is pressed at the end."></video>
+          </div>
+          <figcaption>A fifteen-second recording. The live player is just below.</figcaption>
+        </figure>
+      </header>
+
+      <p class="demo-kicker"><span class="demo-kicker-tag"><i aria-hidden="true"></i>Live player</span><span>Try it: everything here responds</span></p>
+
+      <!-- tokonoma:demo-player (filled from src/skin.html at build time; see vite.config.js) -->
+
+      <div class="demo-bar" id="settings">
+        <p class="demo-hint">Hover or tap the picture to shift your point of view. Drag the door pull to seek. Press Z for the magnifier. Every setting below changes the player live.</p>
+        <div class="board" role="group" aria-label="Player settings">
+          <div class="board-cell board-colours">
+            <h2 class="board-title">Colour</h2>
+            <div class="demo-switch board-swatches" role="radiogroup" aria-label="Colour scheme" data-attr="data-theme">
+              <button type="button" role="radio" aria-checked="true" data-value="hinoki"><span class="board-chips" aria-hidden="true"><i style="background:#5e4f47"></i><i style="background:#c9b69f"></i><i style="background:#efe6d6"></i><i style="background:#a5ba84"></i></span><span class="board-swatch-name">Hinoki<span lang="ja">檜</span></span></button>
+              <button type="button" role="radio" aria-checked="false" data-value="urushi"><span class="board-chips" aria-hidden="true"><i style="background:#1a1210"></i><i style="background:#c8462c"></i><i style="background:#f3e9d6"></i><i style="background:#e0ae4a"></i></span><span class="board-swatch-name">Urushi<span lang="ja">漆</span></span></button>
+              <button type="button" role="radio" aria-checked="false" data-value="aizome"><span class="board-chips" aria-hidden="true"><i style="background:#1f2d50"></i><i style="background:#8fa4c6"></i><i style="background:#f3f6fa"></i><i style="background:#e8b83e"></i></span><span class="board-swatch-name">Aizome<span lang="ja">藍染</span></span></button>
+              <button type="button" role="radio" aria-checked="false" data-value="sakura"><span class="board-chips" aria-hidden="true"><i style="background:#4c1d30"></i><i style="background:#e8aaba"></i><i style="background:#fdf2f3"></i><i style="background:#a8cc84"></i></span><span class="board-swatch-name">Sakura<span lang="ja">桜</span></span></button>
+              <button type="button" role="radio" aria-checked="false" data-value="custom"><span class="board-chips board-chips-custom" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="board-swatch-name">Custom<span>your own</span></span></button>
+            </div>
+            <div class="board-custom" aria-hidden="true" inert>
+              <div class="board-custom-inner">
+              <div class="board-colour-grid">
+                <label class="board-colour"><input type="color" data-colour="wood"><span>Wood</span></label>
+                <label class="board-colour"><input type="color" data-colour="floor"><span>Floor</span></label>
+                <label class="board-colour"><input type="color" data-colour="paper"><span>Paper</span></label>
+                <label class="board-colour"><input type="color" data-colour="ink"><span>Ink</span></label>
+                <label class="board-colour"><input type="color" data-colour="ink-soft"><span>Quiet ink</span></label>
+                <label class="board-colour"><input type="color" data-colour="wall"><span>Wall</span></label>
+                <label class="board-colour"><input type="color" data-colour="accent"><span>Accent</span></label>
+                <label class="board-colour"><input type="color" data-colour="accent-deep"><span>Accent on paper</span></label>
+              </div>
+              <p class="board-note">Starts from the scheme you were on. Keep the wood darker than the floor and paper, and the ink dark on paper, so every control stays legible.</p>
+              <button type="button" class="board-action" data-action="copy-colours">Copy as CSS</button>
+              </div>
+            </div>
+          </div>
+          <div class="board-cell">
+            <h2 class="board-title">Post</h2>
+            <div class="demo-switch" role="radiogroup" aria-label="Post position" data-attr="data-post">
+              <button type="button" role="radio" aria-checked="true" data-value="right">Right</button>
+              <button type="button" role="radio" aria-checked="false" data-value="left">Left</button>
+              <button type="button" role="radio" aria-checked="false" data-value="tuck">Tucked</button>
+              <button type="button" role="radio" aria-checked="false" data-value="none">Hidden</button>
+            </div>
+            <label class="demo-range"><span class="board-label">Size</span><input type="range" min="48" max="96" step="1" value="60" data-var="--tk-post" data-unit="px"><output>60px</output></label>
+          </div>
+          <div class="board-cell">
+            <h2 class="board-title">Title</h2>
+            <div class="demo-switch" role="radiogroup" aria-label="Title position" data-attr="data-title-align">
+              <button type="button" role="radio" aria-checked="false" data-value="left">Left</button>
+              <button type="button" role="radio" aria-checked="true" data-value="center">Centre</button>
+              <button type="button" role="radio" aria-checked="false" data-value="right">Right</button>
+              <button type="button" role="radio" aria-checked="false" data-value="none">Hidden</button>
+            </div>
+            <span class="board-label">Layer</span>
+            <div class="demo-switch" role="radiogroup" aria-label="Title layer" data-attr="data-title-layer">
+              <button type="button" role="radio" aria-checked="false" data-value="under">Under shade</button>
+              <button type="button" role="radio" aria-checked="true" data-value="over">Over shade</button>
+            </div>
+          </div>
+          <div class="board-cell">
+            <h2 class="board-title">Floor</h2>
+            <div class="demo-switch" role="radiogroup" aria-label="Floor entrance" data-attr="data-floor-mode">
+              <button type="button" role="radio" aria-checked="true" data-value="tilt">Tilt</button>
+              <button type="button" role="radio" aria-checked="false" data-value="slide">Slide</button>
+              <button type="button" role="radio" aria-checked="false" data-value="mask">Mask</button>
+              <button type="button" role="radio" aria-checked="false" data-value="fixed">Fixed</button>
+            </div>
+            <span class="board-label">Seek bar</span>
+            <div class="demo-switch" role="radiogroup" aria-label="Seek bar" data-attr="data-seek">
+              <button type="button" role="radio" aria-checked="true" data-value="solid">Solid</button>
+              <button type="button" role="radio" aria-checked="false" data-value="clear">Clear</button>
+            </div>
+            <span class="board-label">Chapter joints</span>
+            <div class="demo-switch" role="radiogroup" aria-label="Chapter joints" data-attr="data-chapter-style">
+              <button type="button" role="radio" aria-checked="true" data-value="kumiko">Kumiko</button>
+              <button type="button" role="radio" aria-checked="false" data-value="peg">Peg</button>
+              <button type="button" role="radio" aria-checked="false" data-value="rail">Rail</button>
+              <button type="button" role="radio" aria-checked="false" data-value="gap">Gap</button>
+            </div>
+          </div>
+          <div class="board-cell">
+            <h2 class="board-title">Light &amp; frame</h2>
+            <div class="demo-switch" role="radiogroup" aria-label="Shade" data-attr="data-shade">
+              <button type="button" role="radio" aria-checked="true" data-value="on">Shade on</button>
+              <button type="button" role="radio" aria-checked="false" data-value="none">Shade off</button>
+            </div>
+            <label class="demo-range"><span class="board-label">Shade</span><input type="range" min="0" max="1" step="0.05" value="0.35" data-var="--tk-shade" data-unit=""><output>0.35</output></label>
+            <label class="demo-range"><span class="board-label">Frame</span><input type="range" min="0" max="24" step="1" value="2" data-var="--tk-frame" data-unit="px"><output>2px</output></label>
+            <span class="board-label">Shape</span>
+            <div class="demo-switch" role="radiogroup" aria-label="Frame shape" data-attr="data-aspect">
+              <button type="button" role="radio" aria-checked="true" data-value="auto">Auto</button>
+              <button type="button" role="radio" aria-checked="false" data-value="21:9">21:9</button>
+              <button type="button" role="radio" aria-checked="false" data-value="4:3">4:3</button>
+              <button type="button" role="radio" aria-checked="false" data-value="9:16">9:16</button>
+            </div>
+          </div>
+          <div class="board-cell board-effects">
+            <h2 class="board-title">Effects</h2>
+            <div class="board-pair">
+              <span class="board-label">Light through paper</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Light through paper" data-attr="data-paper-light">
+                <button type="button" role="radio" aria-checked="true" data-value="on">On</button>
+                <button type="button" role="radio" aria-checked="false" data-value="off">Off</button>
+              </div>
+            </div>
+            <div class="board-pair">
+              <span class="board-label">Depth</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Parallax depth" data-attr="data-depth">
+                <button type="button" role="radio" aria-checked="true" data-value="on">On</button>
+                <button type="button" role="radio" aria-checked="false" data-value="off">Off</button>
+              </div>
+            </div>
+            <div class="board-pair">
+              <span class="board-label">Sound</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Interface sounds" data-attr="data-sound">
+                <button type="button" role="radio" aria-checked="false" data-value="on">On</button>
+                <button type="button" role="radio" aria-checked="true" data-value="off">Off</button>
+              </div>
+            </div>
+          </div>
+          <div class="board-cell board-magnifier">
+            <h2 class="board-title">Magnifier</h2>
+            <div class="board-pair">
+              <span class="board-label">Lens</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Magnifier" data-attr="data-magnifier">
+                <button type="button" role="radio" aria-checked="false" data-value="on">On</button>
+                <button type="button" role="radio" aria-checked="true" data-value="off">Off</button>
+              </div>
+            </div>
+            <div class="board-pair">
+              <span class="board-label">Shape</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Lens shape" data-attr="data-magnifier-shape">
+                <button type="button" role="radio" aria-checked="true" data-value="circle">Round</button>
+                <button type="button" role="radio" aria-checked="false" data-value="square">Square</button>
+              </div>
+            </div>
+            <p class="board-note">Or press Z. Scroll over the lens to zoom.</p>
+          </div>
+          <div class="board-cell board-seal">
+            <h2 class="board-title">Seal</h2>
+            <div class="board-pair">
+              <span class="board-label">Mark</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Seal mark" data-attr="data-seal-demo">
+                <button type="button" role="radio" aria-checked="true" data-value="initials">Initials</button>
+                <button type="button" role="radio" aria-checked="false" data-value="text">Text</button>
+                <button type="button" role="radio" aria-checked="false" data-value="image">Image</button>
+              </div>
+            </div>
+            <div class="board-pair">
+              <span class="board-label">Place</span>
+              <div class="demo-switch" role="radiogroup" aria-label="Seal position" data-attr="data-seal-align">
+                <button type="button" role="radio" aria-checked="true" data-value="left">Left</button>
+                <button type="button" role="radio" aria-checked="false" data-value="center">Centre</button>
+                <button type="button" role="radio" aria-checked="false" data-value="right">Right</button>
+              </div>
+            </div>
+            <button type="button" class="board-action" data-action="ending">Play the ending</button>
+          </div>
+          <div class="board-cell board-lattice" data-tk-keep-open>
+            <h2 class="board-title">Lattice</h2>
+            <label class="demo-range"><span class="board-label">Angle</span><input type="range" min="-30" max="30" step="1" value="20" data-var="--tk-lattice-angle" data-unit="deg" data-show="°"><output>20°</output></label>
+            <label class="demo-range"><span class="board-label">Size</span><input type="range" min="20" max="80" step="1" value="54" data-var="--tk-lattice-size" data-unit="px"><output>54px</output></label>
+            <label class="demo-range"><span class="board-label">Opacity</span><input type="range" min="0" max="0.5" step="0.01" value="0.08" data-var="--tk-lattice-opacity" data-unit=""><output>0.08</output></label>
+            <p class="board-note">Adjusting these opens the settings door, so you can see its shadow.</p>
+          </div>
+          <div class="board-cell board-keys">
+            <h2 class="board-title">Keyboard</h2>
+            <dl class="board-keylist"><div class="board-key"><dt><kbd>Space</kbd><kbd>K</kbd></dt><dd>Play / pause</dd></div><div class="board-key"><dt><kbd>M</kbd></dt><dd>Mute</dd></div><div class="board-key"><dt><kbd>←</kbd><kbd>→</kbd></dt><dd>Back / forward 5s</dd></div><div class="board-key"><dt><kbd>J</kbd><kbd>L</kbd></dt><dd>Back / forward 10s</dd></div><div class="board-key"><dt><kbd>↑</kbd><kbd>↓</kbd></dt><dd>Volume</dd></div><div class="board-key"><dt><kbd>0</kbd><kbd>9</kbd></dt><dd>Jump to 0–90%</dd></div><div class="board-key"><dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>Start / end</dd></div><div class="board-key"><dt><kbd>P</kbd><kbd>N</kbd></dt><dd>Previous / next chapter</dd></div><div class="board-key"><dt><kbd>&lt;</kbd><kbd>&gt;</kbd></dt><dd>Slower / faster</dd></div><div class="board-key"><dt><kbd>F</kbd></dt><dd>Fullscreen</dd></div><div class="board-key"><dt><kbd>C</kbd></dt><dd>Captions</dd></div><div class="board-key"><dt><kbd>S</kbd></dt><dd>Open / close settings</dd></div><div class="board-key"><dt><kbd>Z</kbd></dt><dd>Magnifier (wheel to zoom)</dd></div><div class="board-key"><dt><kbd>Esc</kbd></dt><dd>Close the settings door</dd></div></dl>
+          </div>
+        </div>
+      </div>
+
+      <article class="story">
+        <section class="story-section" aria-labelledby="s-inspiration">
+          <div class="story-label"><h2 id="s-inspiration">Inspiration</h2></div>
+          <div class="story-body">
+            <p>In a traditional Japanese room, the <em>tokonoma</em> is a shallow alcove set aside for one thing at a time: a hanging scroll, a single flower arrangement. Everything around it is quiet so that one object can be seen properly.</p>
+            <p>A video player can work the same way. Most players lay their controls over the picture; Tokonoma builds them into the room instead, out of the same parts a Japanese carpenter would use. They stay out of sight until you change where you're looking from.</p>
+            <figure class="story-photo">
+              <img src="process/tokonoma-room.jpg" alt="A Japanese room with tatami floor. At the back, a raised alcove holds a single hanging scroll and a bonsai; a natural-wood post stands beside it, and a wooden lintel spans the top." loading="lazy" width="2000" height="1420">
+              <figcaption>A tokonoma. The raised alcove holds one hanging scroll and a bonsai; the natural-wood post, the <em>tokobashira</em>, stands at its side, and the lintel frames it from above. <span class="story-credit">Photo: Jens F. via Pexels</span></figcaption>
+            </figure>
+            <dl class="story-map">
+              <div><dt>Tokonoma <span lang="ja">床の間</span></dt><dd>The alcove. The video sits in a recessed frame with a soft shadow under the lintel.</dd></div>
+              <div><dt>Tokobashira <span lang="ja">床柱</span></dt><dd>The alcove's post. It holds volume, settings and fullscreen, and casts a shade across the floor.</dd></div>
+              <div><dt>Otoshigake <span lang="ja">落掛</span></dt><dd>The lintel. The title card hangs from it and slides down as your point of view shifts.</dd></div>
+              <div><dt>Shōji &amp; washi <span lang="ja">障子・和紙</span></dt><dd>The sliding paper door. It slides across the floor as the video plays, so the seek bar is a door, not a line.</dd></div>
+              <div><dt>Hikite <span lang="ja">引手</span></dt><dd>The recessed wooden door pull. It is the handle you drag to seek, and to set the volume.</dd></div>
+              <div><dt>Kumiko <span lang="ja">組子</span></dt><dd>Wooden joinery. Chapter breaks are joints in the floor's groove, and the settings door's lattice casts its shadow across the picture.</dd></div>
+              <div><dt>Hanko <span lang="ja">判子</span></dt><dd>A personal seal. When the film ends, one is pressed onto the shut door, like a signature on finished work.</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="story-section" aria-labelledby="s-features">
+          <div class="story-label"><h2 id="s-features">Features</h2></div>
+          <div class="story-body">
+            <ul class="feature-grid">
+              <li><h3>A change of perspective</h3><p>Hover, tap or focus the player and your point of view lowers: the picture rises behind the lintel and the floor of the room comes into view. Look away and the view settles back on the picture, leaving a thin strip of progress.</p></li>
+              <li><h3>A door for a seek bar</h3><p>The washi door slides with playback. Drag its pull, click anywhere along the groove to glide there, or use the keyboard.</p></li>
+              <li><h3>Chapters and previews</h3><p>Chapter joints in the groove, and a preview card that wipes in with the chapter title, the time and a thumbnail.</p></li>
+              <li><h3>A volume door</h3><p>On the post, the volume icon is wiped away as a small vertical door rises, with its own pull and level.</p></li>
+              <li><h3>The settings door</h3><p>A second washi door slides out from behind the post: speed, captions, chapters with loop-a-chapter, light presets and picture adjustments, picture-in-picture, loop, a magnifier, sounds and shortcuts.</p></li>
+              <li><h3>Light through paper</h3><p>The washi takes on a faint tint of whatever the scene is showing, the way paper glows with the light behind it. As the settings door opens, its kumiko lattice casts a shadow across the picture.</p></li>
+              <li><h3>Depth you can feel</h3><p>The picture, and the shade falling on it, drift a few pixels against the frame as you move the pointer or tilt your phone, so the alcove reads as a real recess.</p></li>
+              <li><h3>A seal on the ending</h3><p>When the film ends, a hanko seal is pressed onto the shut door: the title's initials, your own text, or any SVG or PNG, at the left, centre or right.</p></li>
+              <li><h3>A closer look</h3><p>A round or square lens follows the pointer, or your finger, and shows the live picture enlarged; scroll over it to zoom from 1.5× to 5×.</p></li>
+              <li><h3>Quiet sounds, if wanted</h3><p>Off by default. A wooden knock on the door pulls, a paper glide along the groove, the door drawn along its runner, a soft tap in the menu. All are made in the browser; no audio files.</p></li>
+              <li><h3>Light, not overlays</h3><p>Pausing lowers the room's light from the post's side. Loading runs a soft glide along the groove; errors appear on a washi card with one clear way to retry.</p></li>
+              <li><h3>Made to fit</h3><p>Four colour schemes (hinoki, black lacquer, indigo and sakura) that fade into one another. Post on the right, left or hidden; title left, centred, right or hidden; a floor that tilts, slides or unmasks; any frame width, shade and lattice; and a clear seek bar that lays a frosted floor over the picture.</p></li>
+              <li><h3>Accessible</h3><p>Every control works from the keyboard in a sensible order, with standard hotkeys plus keys for chapters, settings and the magnifier. Volume, speed and chapter changes appear on a washi slip, and are announced to screen readers. Focus is always visible, and motion turns into calm cross-fades when reduced motion is on.</p></li>
+              <li><h3>It remembers</h3><p>Speed, volume, colour scheme, sound and picture settings are kept for your next visit.</p></li>
+              <li><h3>Any source</h3><p>Streams from Mux here, and works the same with a plain video file, HLS or DASH from any host, or YouTube and Vimeo embeds.</p></li>
+            </ul>
+            <ul class="stats" aria-label="Measured on the production build">
+              <li><strong>100</strong><span>Lighthouse accessibility, on desktop and mobile</span></li>
+              <li><strong>0</strong><span>axe-core issues against WCAG 2.1 AA, with the settings door open and shut</span></li>
+              <li><strong>24 KB</strong><span>the skin's own CSS and JavaScript, gzipped, on top of Video.js; no image files in the interface</span></li>
+              <li><strong>97</strong><span>Lighthouse performance on desktop; SEO 100</span></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="story-section" aria-labelledby="s-uses">
+          <div class="story-label"><h2 id="s-uses">Where it fits</h2></div>
+          <div class="story-body">
+            <ul class="use-list">
+              <li><strong>Portfolios and showreels</strong> where the work should be seen before the interface is.</li>
+              <li><strong>Galleries, museums and archives</strong> presenting film as an object on display.</li>
+              <li><strong>Architecture and interior studios</strong> walking clients through spaces, with a chapter for each room.</li>
+              <li><strong>Craft, tea, hospitality and design brands</strong> whose sites are built on material and restraint.</li>
+              <li><strong>Documentaries and courses</strong> that lean on chapters, previews and looping a section.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="story-section" aria-labelledby="s-different">
+          <div class="story-label"><h2 id="s-different">What makes it different</h2></div>
+          <div class="story-body">
+            <div class="compare">
+              <figure><img src="process/compare-default.jpg" alt="The same frame of blossoms in the Video.js default skin: a row of controls laid over the bottom of the picture." loading="lazy" width="1440" height="810"><figcaption><span>Video.js default skin.</span> The controls lie over the picture.</figcaption></figure>
+              <figure><img src="process/compare-tokonoma.jpg" alt="The same frame in Tokonoma: the picture sits in a walnut frame, the title card hangs from the lintel, the post holds volume, settings and fullscreen, and a washi door slides along the floor below." loading="lazy" width="1440" height="761"><figcaption><span>Tokonoma.</span> The controls are part of the room around it.</figcaption></figure>
+            </div>
+            <p><strong>The interface is a point of view.</strong> Nothing fades in over the picture. You look down, the way you would in a real room, and the floor, the door and its pull are already there.</p>
+            <p><strong>The controls are architecture, not an overlay.</strong> Nothing sits on the picture by default. The controls live on a floor, a post and a lintel that belong to the room the video hangs in.</p>
+            <p><strong>Every movement is a physical one.</strong> Doors slide, cards are unmasked rather than faded in, and each motion eases out the way a real door comes to rest.</p>
+            <p><strong>State is carried by light and material.</strong> A paused room dims; a stretch not yet loaded is dusted with washi; the door pull turns matcha green while it is held; the paper glows with the colour of the scene; and the ending is marked with a seal, not a replay overlay.</p>
+          </div>
+        </section>
+
+        <section class="story-section" aria-labelledby="s-use">
+          <div class="story-label"><h2 id="s-use">Use it</h2></div>
+          <div class="story-body">
+            <p>The whole skin, Video.js included, is one tag. Add the stylesheet and the script, then point the player at any video: a Mux or HLS stream, or a plain MP4 or WebM file. The snippet below works as it is, pasted into any page or a Framer embed; swap in your own video, poster and tracks.</p>
+            <div class="code-block">
+              <button type="button" class="code-copy" data-copy="#snippet-embed">Copy</button>
+              <pre tabindex="0" aria-label="Embed code"><code id="snippet-embed">&lt;link rel=&quot;stylesheet&quot; href=&quot;https://tokonoma-site.vercel.app/lib/tokonoma.css&quot;&gt;
+&lt;script type=&quot;module&quot; src=&quot;https://tokonoma-site.vercel.app/lib/tokonoma.js&quot;&gt;&lt;/script&gt;
+
+&lt;tokonoma-player
+  src=&quot;https://stream.mux.com/uvARTyBix02kTMuAOLGfaedhBu02teeI8P02YVezZ6GkKQ.m3u8&quot;
+  title=&quot;A Quiet Year&quot;
+  poster=&quot;https://tokonoma-site.vercel.app/media/poster.webp&quot;
+  chapters=&quot;https://tokonoma-site.vercel.app/media/chapters.vtt&quot;
+  captions=&quot;https://tokonoma-site.vercel.app/media/captions-en.vtt&quot;
+  theme=&quot;hinoki&quot;&gt;
+&lt;/tokonoma-player&gt;</code></pre>
+            </div>
+            <p>Every setting on this page is an attribute: <code>theme</code>, <code>post</code>, <code>title-align</code>, <code>title-layer</code>, <code>seek</code>, <code>floor</code>, <code>chapters-style</code>, <code>shade</code>, <code>paper-light</code>, <code>depth</code>, <code>sound</code>, <code>magnifier-shape</code>, <code>seal</code>, <code>seal-src</code>, <code>seal-align</code> and <code>volume</code>. The lattice, frame, post size and shade strength are CSS custom properties.</p>
+            <figure class="use-example">
+              <tokonoma-player src="https://stream.mux.com/uvARTyBix02kTMuAOLGfaedhBu02teeI8P02YVezZ6GkKQ.m3u8" title="A Quiet Year" poster="media/poster.webp" chapters="media/chapters.vtt" captions="media/captions-en.vtt" captions-label="English (SDH)" fallback="media/quiet-year.mp4" fallback-thumbnails="media/thumbnails.vtt" preload="metadata" loading="lazy" theme="aizome" post="left" seal-align="center" remember="off"></tokonoma-player>
+              <figcaption>Made from the tag above, with <code>theme="aizome"</code>, <code>post="left"</code> and <code>seal-align="center"</code>.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="story-section" aria-labelledby="s-process">
+          <div class="story-label"><h2 id="s-process">Early versions</h2></div>
+          <div class="story-body">
+            <p>Designed in Framer first, then built frame by frame against those designs.</p>
+            <div class="process-grid">
+              <figure><img src="process/01-concept.jpg" alt="An early concept: a tea ceremony video in the alcove, with a title card on the lintel and the post holding three controls." loading="lazy" width="1134" height="602"><figcaption><span>First concept.</span> The picture in its alcove, the title card on the lintel, and the post holding three controls.</figcaption></figure>
+              <figure><img src="process/02-floor-preview.jpg" alt="The floor raised under the video, with a preview thumbnail above the door pull." loading="lazy" width="1134" height="674"><figcaption><span>The floor rises.</span> Controls on a floor that hinges up, and the first preview card riding above the pull.</figcaption></figure>
+              <figure><img src="process/03-kumiko-joint.jpg" alt="A close-up study of a chapter joint: a tilted wooden key crossing a cut in the groove." loading="lazy" width="617" height="356"><figcaption><span>Kumiko joint study.</span> A chapter break as a tilted key bridging a cut in the groove.</figcaption></figure>
+              <figure><img src="process/04-volume-door.jpg" alt="Five frames of the volume control: the icon at rest, then a vertical washi door at 0, 25, 40 and 100 percent." loading="lazy" width="1137" height="432"><figcaption><span>Volume door.</span> The post's cell turns into a vertical washi door that wipes in on hover.</figcaption></figure>
+              <figure><img src="process/05-fullscreen-corners.jpg" alt="Three frames of the fullscreen button: the corners spreading outwards to the edges of the cell." loading="lazy" width="664" height="319"><figcaption><span>Fullscreen corners.</span> On hover, the four corners spread out to the edges of the cell.</figcaption></figure>
+              <figure><img src="process/06-settings-wireframe.jpg" alt="A wireframe of the settings panel sliding out from behind the post over the video." loading="lazy" width="1400" height="761"><figcaption><span>Settings door.</span> The wireframe for a second washi door that slides out from behind the post.</figcaption></figure>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <nav class="toc" aria-label="On this page" data-hidden>
+        <button type="button" class="toc-toggle" aria-expanded="false" aria-controls="toc-list"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"/><path d="M2.5 4h.01M2.5 8h.01M2.5 12h.01" stroke-width="2.2"/></svg><span>Contents</span></button>
+        <ol class="toc-list" id="toc-list">
+          <li><a href="#player">Player</a></li>
+          <li><a href="#settings">Settings</a></li>
+          <li><a href="#s-inspiration">Inspiration</a></li>
+          <li><a href="#s-features">Features</a></li>
+          <li><a href="#s-uses">Where it fits</a></li>
+          <li><a href="#s-different">Different</a></li>
+          <li><a href="#s-use">Use it</a></li>
+          <li><a href="#s-process">Early versions</a></li>
+        </ol>
+      </nav>
+      <footer class="site-foot">
+        <p>Built with <a href="https://videojs.org/">Video.js v10</a>, streamed by <a href="https://www.mux.com/">Mux</a>, hosted on <a href="https://vercel.com/">Vercel</a>. Type: JetBrains Mono. Icons: Phosphor.</p>
+        <p>Video: “A Quiet Year”, edited from stock footage via Pexels. Music: “Whispering Bamboo (Zen)” by Djovan via Pixabay. Tokonoma photograph by Jens F. via Pexels.</p>
+        <p>Design &amp; build: <a href="https://www.framer.com/@joshua-roberts/">Joshua Roberts</a> · Entry for the Contra Video.js Skins Design Challenge, 2026.</p>
+        <p>Built on open-source software: Video.js, hls.js and Lit (Apache-2.0 / BSD), Phosphor Icons (MIT), JetBrains Mono (OFL). <a href="THIRD-PARTY-NOTICES.txt">Third-party notices</a>.</p>
+      </footer>
+    </main>
+  </body>
+</html>
